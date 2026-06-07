@@ -1,0 +1,83 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.UserSearchVM
+
+@{
+    string checkInValue = Model.CheckInDate?.ToString("yyyy-MM-dd") ?? "";
+    string checkOutValue = Model.CheckOutDate?.ToString("yyyy-MM-dd") ?? "";
+
+    string displayText = "Chọn ngày nhận - trả phòng";
+
+    if (!string.IsNullOrWhiteSpace(checkInValue) && !string.IsNullOrWhiteSpace(checkOutValue))
+    {
+        displayText = $"{Model.CheckInDate:dd/MM/yyyy} — {Model.CheckOutDate:dd/MM/yyyy}";
+    }
+}
+
+<div class="booking-calendar-wrapper"
+     data-checkin="@checkInValue"
+     data-checkout="@checkOutValue">
+    <input type="hidden" name="CheckInDate" class="booking-checkin-value" value="@checkInValue" />
+    <input type="hidden" name="CheckOutDate" class="booking-checkout-value" value="@checkOutValue" />
+
+    <button type="button" class="booking-calendar-toggle">
+        <i class="fa-regular fa-calendar-days"></i>
+        <span class="booking-calendar-text">@displayText</span>
+        <i class="fa-solid fa-chevron-down ms-auto"></i>
+    </button>
+
+    <div class="booking-calendar-panel d-none">
+        <div class="booking-calendar-tabs">
+            <button type="button" class="active">Lịch</button>
+            <button type="button">Ngày linh hoạt</button>
+        </div>
+
+        <div class="booking-calendar-months">
+            <div class="calendar-month">
+                <div class="calendar-month-head">
+                    <button type="button" class="calendar-nav-btn calendar-prev">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <h5 class="calendar-month-title left-month-title"></h5>
+
+                    <span></span>
+                </div>
+
+                <div class="calendar-weekdays">
+                    <span>T2</span>
+                    <span>T3</span>
+                    <span>T4</span>
+                    <span>T5</span>
+                    <span>T6</span>
+                    <span>T7</span>
+                    <span>CN</span>
+                </div>
+
+                <div class="calendar-days left-month-days"></div>
+            </div>
+
+            <div class="calendar-month">
+                <div class="calendar-month-head">
+                    <span></span>
+
+                    <h5 class="calendar-month-title right-month-title"></h5>
+
+                    <button type="button" class="calendar-nav-btn calendar-next">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="calendar-weekdays">
+                    <span>T2</span>
+                    <span>T3</span>
+                    <span>T4</span>
+                    <span>T5</span>
+                    <span>T6</span>
+                    <span>T7</span>
+                    <span>CN</span>
+                </div>
+
+                <div class="calendar-days right-month-days"></div>
+            </div>
+        </div>
+    </div>
+</div>

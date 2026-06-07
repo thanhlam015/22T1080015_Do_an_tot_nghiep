@@ -1,0 +1,111 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.AccommodationVM
+@{
+    ViewData["Title"] = "Thêm nơi lưu trú";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="fw-bold text-primary mb-0">Thêm nơi lưu trú mới</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Tên nơi lưu trú</label>
+                    <input asp-for="Name" class="form-control" required />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-bold">Tỉnh/Thành phố</label>
+                    <select asp-for="DistrictId" class="form-select" asp-items="Model.Districts">
+                        <option value="">-- Chọn Tỉnh/Thành --</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-bold">Loại hình</label>
+                    <select asp-for="PropertyTypeId" class="form-select" asp-items="Model.PropertyTypes">
+                        <option value="">-- Chọn Loại hình --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-9 mb-3">
+                    <label class="form-label fw-bold">Địa chỉ chi tiết</label>
+                    <input asp-for="Address" class="form-control" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-bold">Xếp hạng sao (1-5)</label>
+                    <input asp-for="StarRating" type="number" min="1" max="5" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tải ảnh lên (Chọn nhiều ảnh cùng lúc)</label>
+                <input type="file" id="imageInput" asp-for="UploadImages" class="form-control" multiple accept="image/*" />
+
+                <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Mô tả chi tiết</label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="form-label fw-bold text-primary border-bottom pb-2 w-100">Tiện ích Nơi lưu trú</label>
+                <div class="row mt-2">
+                    @* FIX: Kiểm tra NULL để tránh lỗi màn hình vàng *@
+                    @if (Model.AvailableAmenities != null && Model.AvailableAmenities.Any())
+                    {
+                        foreach (var amenity in Model.AvailableAmenities)
+                        {
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="SelectedAmenityIds" value="@amenity.Id"
+                                           @(Model.SelectedAmenityIds != null && Model.SelectedAmenityIds.Contains(amenity.Id) ? "checked" : "") />
+                                    <label class="form-check-label">@amenity.Name</label>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12"><span class="text-danger fst-italic">Chưa có dữ liệu tiện ích để hiển thị.</span></div>
+                    }
+                </div>
+            </div>
+
+            <div class="text-end border-top pt-3">
+                <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+                <button type="submit" class="btn btn-primary px-4">Lưu dữ liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function (e) {
+            var previewContainer = document.getElementById('imagePreview');
+            previewContainer.innerHTML = ''; // Xóa các ảnh preview cũ nếu người dùng chọn lại file
+
+            var files = e.target.files;
+            if (files) {
+                Array.from(files).forEach(file => {
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                        var img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.className = 'img-thumbnail shadow-sm';
+                        img.style.width = '150px';
+                        img.style.height = '150px';
+                        img.style.objectFit = 'cover'; // Cắt ảnh vuông vắn đẹp mắt
+                        previewContainer.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+    </script>
+}

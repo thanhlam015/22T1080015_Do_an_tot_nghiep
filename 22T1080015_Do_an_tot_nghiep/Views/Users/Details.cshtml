@@ -1,0 +1,731 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.UserAccommodationDetailVM
+
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = "_LayoutUser";
+
+    var galleryImages = Model.Images
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .ToList();
+
+    string mainImage = galleryImages.FirstOrDefault() ?? "";
+}
+
+<section class="detail-hero user-card mb-4">
+    <div class="row g-0">
+        <div class="col-lg-7">
+            <div class="detail-gallery">
+                <div class="detail-main-image-wrap">
+                    @if (!string.IsNullOrWhiteSpace(mainImage))
+                    {
+                        <img src="@mainImage"
+                             id="detailMainImage"
+                             class="detail-main-img"
+                             alt="@Model.Name" />
+                    }
+                    else
+                    {
+                        <div class="image-placeholder detail-main-img">
+                            <i class="fa-solid fa-hotel fa-4x"></i>
+                        </div>
+                    }
+                </div>
+
+                @if (galleryImages.Count > 1)
+                {
+                    <div class="detail-thumb-strip">
+                        @for (int i = 0; i < galleryImages.Count; i++)
+                        {
+                            var imageUrl = galleryImages[i];
+
+                            <button type="button"
+                                    class="detail-thumb-btn @(i == 0 ? "active" : "")"
+                                    data-image="@imageUrl">
+                                <img src="@imageUrl" alt="@Model.Name ảnh @(i + 1)" />
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <span class="badge bg-primary mb-2">@Model.PropertyTypeName</span>
+
+                            @if (Model.StarRating != null)
+                            {
+                                <span class="badge bg-warning text-dark mb-2">
+                                    @Model.StarRating sao
+                                </span>
+                            }
+
+                            <h2 class="fw-bold mb-2">@Model.Name</h2>
+
+                            <p class="text-muted mb-0">
+                                <i class="fa-solid fa-location-dot me-1"></i>
+                                @Model.Address
+                            </p>
+
+                            <p class="text-muted small mb-0">
+                                @Model.DistrictName
+                            </p>
+                        </div>
+
+                        @if (Model.AverageRating != null)
+                        {
+                            <div class="rating-corner">
+                                <span>@Model.AverageRating</span>
+                                <small>Đánh giá</small>
+                            </div>
+                        }
+                    </div>
+
+                    <p class="text-muted">
+                        @Model.Description
+                    </p>
+                </div>
+
+                <form asp-controller="Users"
+                      asp-action="Details"
+                      asp-route-id="@Model.Id"
+                      method="get"
+                      class="detail-search-box">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ngày lưu trú</label>
+                        <partial name="_UserDateRangeBox" model="Model.Search" />
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label class="form-label fw-semibold small">Phòng</label>
+                            <input name="roomCount"
+                                   value="@Model.Search.RoomCount"
+                                   type="number"
+                                   min="1"
+                                   max="10"
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold small">Người lớn</label>
+                            <input name="adultCount"
+                                   value="@Model.Search.AdultCount"
+                                   type="number"
+                                   min="1"
+                                   max="30"
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold small">Trẻ em</label>
+                            <input name="childCount"
+                                   value="@Model.Search.ChildCount"
+                                   type="number"
+                                   min="0"
+                                   max="20"
+                                   class="form-control" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold mt-3">
+                        Kiểm tra phòng trống
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="user-card p-4 mb-4">
+            <h4 class="fw-bold mb-3">Tiện nghi nổi bật</h4>
+
+            @if (Model.HighlightedAmenities.Any())
+            {
+                <div class="amenity-grid">
+                    @foreach (var amenity in Model.HighlightedAmenities)
+                    {
+                        <div class="amenity-item">
+                            <i class="fa-solid fa-circle-check text-primary"></i>
+                            <span>@amenity</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Chưa có thông tin tiện nghi.</p>
+            }
+        </div>
+        <div class="user-card p-4 mb-4">
+            <h4 class="fw-bold mb-3">Tất cả tiện ích nơi lưu trú</h4>
+
+            @if (Model.AllAccommodationAmenities.Any())
+            {
+                <div class="detail-amenity-list">
+                    @foreach (var amenity in Model.AllAccommodationAmenities)
+                    {
+                        <span>
+                            <i class="fa-solid fa-check text-primary me-1"></i>
+                            @amenity
+                        </span>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Chưa có thông tin tiện ích nơi lưu trú.</p>
+            }
+        </div>
+
+        <div class="user-card p-4 mb-4">
+            <h4 class="fw-bold mb-3">Quy định nơi lưu trú</h4>
+
+            @if (Model.Rules != null)
+            {
+                <div class="rule-list">
+                    <div>
+                        <strong>Nhận phòng:</strong>
+                        <span>@(Model.Rules.CheckInTime ?? "Chưa cập nhật")</span>
+                    </div>
+
+                    <div>
+                        <strong>Trả phòng:</strong>
+                        <span>@(Model.Rules.CheckOutTime ?? "Chưa cập nhật")</span>
+                    </div>
+
+                    <div>
+                        <strong>Vật nuôi:</strong>
+                        <span>@(Model.Rules.PetPolicy ?? "Chưa cập nhật")</span>
+                    </div>
+
+                    <div>
+                        <strong>Độ tuổi:</strong>
+                        <span>@(Model.Rules.AgeRestriction ?? "Chưa cập nhật")</span>
+                    </div>
+
+                    <div>
+                        <strong>Hủy phòng:</strong>
+                        <span>@(Model.Rules.CancellationPolicy ?? "Chưa cập nhật")</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Chưa có quy định nơi lưu trú.</p>
+            }
+        </div>
+
+        <div class="user-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h4 class="fw-bold mb-1">Đánh giá của khách</h4>
+                    @if (Model.TotalReviews > 0)
+                    {
+                        <div class="review-stat-box mb-4">
+                            <div class="review-score-box">
+                                <div class="review-score">@Model.RatingAverage.ToString("0.0")</div>
+                                <div class="text-muted small">@Model.TotalReviews đánh giá</div>
+                            </div>
+
+                            <div class="review-bars">
+                                @for (int star = 5; star >= 1; star--)
+                                {
+                                    int count = Model.RatingSummary.ContainsKey(star) ? Model.RatingSummary[star] : 0;
+                                    int percent = Model.TotalReviews > 0
+                                    ? (int)Math.Round(count * 100.0 / Model.TotalReviews)
+                                    : 0;
+
+                                    <div class="review-bar-row">
+                                        <span>@star sao</span>
+                                        <div class="review-bar">
+                                            <div style="width:@percent%"></div>
+                                        </div>
+                                        <small>@count</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    <p class="text-muted mb-0">
+                        Chỉ khách đã hoàn thành đặt phòng mới có thể đánh giá.
+                    </p>
+                </div>
+
+                @if (Model.CanReview)
+                {
+                    <button type="button"
+                            class="btn btn-primary rounded-pill"
+                            data-bs-toggle="modal"
+                            data-bs-target="#reviewModal">
+                        Viết đánh giá
+                    </button>
+                }
+            </div>
+
+            @if (!Model.IsLoggedIn)
+            {
+                <div class="alert alert-info">
+                    Đăng nhập và hoàn thành đặt phòng để đánh giá nơi lưu trú này.
+                </div>
+            }
+            else if (Model.HasReviewed)
+            {
+                <div class="alert alert-success">
+                    Bạn đã đánh giá nơi lưu trú này.
+                </div>
+            }
+
+            @if (Model.Reviews.Any())
+            {
+                foreach (var review in Model.Reviews)
+                {
+                    <div class="review-item">
+                        <div class="d-flex gap-3">
+                            @if (!string.IsNullOrWhiteSpace(review.AvatarUrl))
+                            {
+                                <img src="@review.AvatarUrl"
+                                     class="review-avatar"
+                                     alt="@review.UserName" />
+                            }
+                            else
+                            {
+                                <div class="review-avatar review-avatar-empty">
+                                    @review.UserName.Substring(0, 1).ToUpper()
+                                </div>
+                            }
+
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>@review.UserName</strong>
+                                        <div class="small text-muted">
+                                            @review.CreatedAt.ToString("dd/MM/yyyy")
+                                        </div>
+                                    </div>
+
+                                    <span class="badge bg-primary">
+                                        @review.Rating/5
+                                    </span>
+                                </div>
+
+                                <p class="mb-0 mt-2">@review.Comment</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-regular fa-star"></i>
+                    <h5 class="fw-bold">Chưa có đánh giá</h5>
+                    <p class="text-muted mb-0">Hãy là người đầu tiên đánh giá sau khi lưu trú.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="user-card p-4">
+            <h5 class="fw-bold mb-3">Tóm tắt tìm kiếm</h5>
+
+            <div class="summary-row">
+                <span>Ngày lưu trú</span>
+                <strong>
+                    @if (Model.StayNights > 0)
+                    {
+                        <text>@Model.StayNights đêm</text>
+                    }
+                    else
+                    {
+                        <text>Chưa chọn</text>
+                    }
+                </strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Số phòng</span>
+                <strong>@Model.Search.RoomCount</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Khách</span>
+                <strong>@Model.Search.AdultCount người lớn · @Model.Search.ChildCount trẻ em</strong>
+            </div>
+
+            <a asp-controller="Users"
+               asp-action="SearchResults"
+               class="btn btn-outline-primary rounded-pill w-100 mt-3">
+                Quay lại kết quả tìm kiếm
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="user-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-1">Phòng trống</h4>
+            <p class="text-muted mb-0">
+                Phòng được lọc theo số khách, số phòng và ngày lưu trú đã chọn.
+            </p>
+        </div>
+    </div>
+
+    @if (Model.Rooms.Any())
+    {
+        <div class="booking-room-table-wrapper">
+            <table class="table booking-room-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 38%;">Loại chỗ nghỉ</th>
+                        <th style="width: 14%;">Số lượng khách</th>
+                        <th style="width: 18%;">Giá</th>
+                        <th style="width: 14%;">Chọn phòng</th>
+                        <th style="width: 16%;"></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var room in Model.Rooms)
+                    {
+                        <tr>
+                            <td>
+                                <div class="room-table-title mb-2">
+                                    @room.RoomType
+                                </div>
+
+                                <div class="room-info-list mb-2">
+                                    @if (!string.IsNullOrWhiteSpace(room.BedType))
+                                    {
+                                        <div class="room-table-meta">
+                                            <i class="fa-solid fa-bed text-primary"></i>
+                                            <span>@room.BedType</span>
+                                        </div>
+                                    }
+
+                                    @if (room.RoomSize != null)
+                                    {
+                                        <div class="room-table-meta">
+                                            <i class="fa-solid fa-ruler-combined text-primary"></i>
+                                            <span>@room.RoomSize m²</span>
+                                        </div>
+                                    }
+
+                                    <div class="room-table-meta">
+                                        <i class="fa-solid fa-user-group text-primary"></i>
+                                        <span>Tối đa @room.Capacity khách</span>
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(room.Description))
+                                {
+                                    <p class="text-muted small mb-2">
+                                        @room.Description
+                                    </p>
+                                }
+
+                                @if (room.Amenities.Any())
+                                {
+                                    <div class="room-amenity-box">
+                                        <div class="small fw-bold mb-1">
+                                            <i class="fa-solid fa-circle-check text-success me-1"></i>
+                                            Tiện ích phòng
+                                        </div>
+
+                                        <div class="room-amenity-list">
+                                            @foreach (var amenity in room.Amenities.Take(8))
+                                            {
+                                                <span>
+                                                    @amenity
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="small text-muted">
+                                        Chưa có thông tin tiện ích phòng.
+                                    </div>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="guest-icons">
+                                    @for (int i = 0; i < room.Capacity; i++)
+                                    {
+                                        <i class="fa-solid fa-user"></i>
+                                    }
+                                </div>
+
+                                <small class="text-muted">
+                                    Tối đa @room.Capacity khách
+                                </small>
+                            </td>
+
+                            <td>
+                                @if (room.StayNights > 0)
+                                {
+                                    <div class="fw-bold text-danger fs-5">
+                                        @room.DisplayPrice.ToString("N0")đ
+                                    </div>
+
+                                    <small class="text-muted">
+                                        cho @room.StayNights đêm · @Model.Search.RoomCount phòng
+                                    </small>
+                                }
+                                else
+                                {
+                                    <div class="text-primary fw-semibold small">
+                                        Vui lòng chọn ngày để có thể xem được giá phòng
+                                    </div>
+
+                                    <button type="button"
+                                            class="btn btn-outline-primary btn-sm rounded-pill mt-2"
+                                            onclick="openDetailCalendar()">
+                                        Chọn ngày để đặt
+                                    </button>
+                                }
+
+                                <div class="mt-2">
+                                    @if (room.IsAvailable)
+                                    {
+                                        <span class="badge bg-success">
+                                            Còn @room.AvailableRooms phòng
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            Hết phòng
+                                        </span>
+                                    }
+                                </div>
+                            </td>
+
+                            <td>
+                                @if (room.IsAvailable && room.StayNights > 0)
+                                {
+                                    <select class="form-select room-quantity-select"
+                                            data-room-id="@room.Id">
+                                        @for (int i = 1; i <= Math.Min(room.AvailableRooms, 10); i++)
+                                        {
+                                            <option value="@i" selected="@(i == Model.Search.RoomCount ? "selected" : null)">
+                                                @i phòng
+                                            </option>
+                                        }
+                                    </select>
+                                }
+                                else
+                                {
+                                    <select class="form-select" disabled>
+                                        <option>0 phòng</option>
+                                    </select>
+                                }
+                            </td>
+
+                            <td class="text-end">
+                                @if (room.IsAvailable && room.StayNights > 0)
+                                {
+                                    <a asp-controller="Users"
+                                       asp-action="Checkout"
+                                       asp-route-roomId="@room.Id"
+                                       asp-route-checkInDate="@(Model.Search.CheckInDate?.ToString("yyyy-MM-dd"))"
+                                       asp-route-checkOutDate="@(Model.Search.CheckOutDate?.ToString("yyyy-MM-dd"))"
+                                       asp-route-roomCount="@Model.Search.RoomCount"
+                                       asp-route-adultCount="@Model.Search.AdultCount"
+                                       asp-route-childCount="@Model.Search.ChildCount"
+                                       class="btn btn-primary rounded-pill fw-bold checkout-btn"
+                                       data-room-id="@room.Id">
+                                        Đặt phòng
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="btn btn-secondary rounded-pill fw-bold"
+                                            disabled>
+                                        Không thể đặt
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fa-solid fa-bed"></i>
+            <h5 class="fw-bold">Không có phòng phù hợp</h5>
+            <p class="text-muted mb-0">
+                Hãy thử thay đổi ngày lưu trú, số phòng hoặc số lượng khách.
+            </p>
+        </div>
+    }
+</section>
+
+@if (Model.CanReview)
+{
+    <div class="modal fade" id="reviewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <form asp-controller="Users" asp-action="CreateReview" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="AccommodationId" value="@Model.Id" />
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Điểm đánh giá</label>
+                            <select name="Rating" class="form-select" required>
+                                <option value="5">5 - Rất tốt</option>
+                                <option value="4">4 - Tốt</option>
+                                <option value="3">3 - Bình thường</option>
+                                <option value="2">2 - Chưa tốt</option>
+                                <option value="1">1 - Tệ</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label fw-semibold">Nhận xét</label>
+                            <textarea name="Comment"
+                                  class="form-control"
+                                  rows="4"
+                                  maxlength="1000"
+                                  placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-outline-secondary rounded-pill"
+                                data-bs-dismiss="modal">
+                            Đóng
+                        </button>
+
+                        <button type="submit"
+                                class="btn btn-primary rounded-pill fw-bold">
+                            Gửi đánh giá
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+@if (Model.TotalReviewPages > 1)
+{
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center review-pagination">
+            @{
+                int startPage = Math.Max(1, Model.ReviewPage - 2);
+                int endPage = Math.Min(Model.TotalReviewPages, startPage + 4);
+
+                if (endPage - startPage < 4)
+                {
+                    startPage = Math.Max(1, endPage - 4);
+                }
+            }
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <li class="page-item @(Model.ReviewPage == i ? "active" : "")">
+                    <a class="page-link"
+                       asp-controller="Users"
+                       asp-action="Details"
+                       asp-route-id="@Model.Id"
+                       asp-route-checkInDate="@(Model.Search.CheckInDate?.ToString("yyyy-MM-dd"))"
+                       asp-route-checkOutDate="@(Model.Search.CheckOutDate?.ToString("yyyy-MM-dd"))"
+                       asp-route-roomCount="@Model.Search.RoomCount"
+                       asp-route-adultCount="@Model.Search.AdultCount"
+                       asp-route-childCount="@Model.Search.ChildCount"
+                       asp-route-reviewPage="@i">
+                        @i
+                    </a>
+                </li>
+            }
+
+            @if (endPage < Model.TotalReviewPages)
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+
+                <li class="page-item">
+                    <a class="page-link"
+                       asp-controller="Users"
+                       asp-action="Details"
+                       asp-route-id="@Model.Id"
+                       asp-route-checkInDate="@(Model.Search.CheckInDate?.ToString("yyyy-MM-dd"))"
+                       asp-route-checkOutDate="@(Model.Search.CheckOutDate?.ToString("yyyy-MM-dd"))"
+                       asp-route-roomCount="@Model.Search.RoomCount"
+                       asp-route-adultCount="@Model.Search.AdultCount"
+                       asp-route-childCount="@Model.Search.ChildCount"
+                       asp-route-reviewPage="@Model.TotalReviewPages">
+                        @Model.TotalReviewPages
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+@section Scripts {
+    <script>
+        function openDetailCalendar() {
+            const calendarToggle = document.querySelector('.booking-calendar-toggle');
+
+            if (calendarToggle) {
+                calendarToggle.click();
+                calendarToggle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        document.querySelectorAll('.room-quantity-select').forEach(select => {
+            select.addEventListener('change', function () {
+                const roomId = this.dataset.roomId;
+                const quantity = this.value;
+
+                const button = document.querySelector(`.checkout-btn[data-room-id="${roomId}"]`);
+
+                if (!button) {
+                    return;
+                }
+
+                const url = new URL(button.href);
+                url.searchParams.set('roomCount', quantity);
+
+                button.href = url.toString();
+            });
+        });
+                document.querySelectorAll('.detail-thumb-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const imageUrl = this.dataset.image;
+                const mainImage = document.getElementById('detailMainImage');
+
+                if (!imageUrl || !mainImage) {
+                    return;
+                }
+
+                mainImage.src = imageUrl;
+
+                document.querySelectorAll('.detail-thumb-btn').forEach(x => {
+                    x.classList.remove('active');
+                });
+
+                this.classList.add('active');
+            });
+        });
+    </script>
+}

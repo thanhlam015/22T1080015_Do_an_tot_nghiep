@@ -1,0 +1,158 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.AdminProfileVM
+
+@{
+    ViewData["Title"] = "Thông tin tài khoản";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="fw-bold text-primary mb-0">
+            <i class="fa-solid fa-user-shield me-2"></i> Thông tin tài khoản
+        </h5>
+    </div>
+
+    <div class="card-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-xmark me-1"></i> @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <form asp-action="Profile" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="UserId" />
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FullName" class="form-label fw-bold"></label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label fw-bold"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="PhoneNumber" class="form-label fw-bold"></label>
+                    <input asp-for="PhoneNumber" class="form-control" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Ảnh đại diện</label>
+
+                    <input type="hidden" asp-for="AvatarUrl" />
+
+                    <div class="mb-2">
+                        @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
+                        {
+                            <img id="profileAvatarPreview"
+                                 src="@Model.AvatarUrl"
+                                 class="rounded-circle border shadow-sm"
+                                 style="width:100px; height:100px; object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <img id="profileAvatarPreview"
+                                 src=""
+                                 class="rounded-circle border shadow-sm d-none"
+                                 style="width:100px; height:100px; object-fit:cover;" />
+                        }
+                    </div>
+
+                    <input asp-for="AvatarFile"
+                           type="file"
+                           class="form-control"
+                           accept=".jpg,.jpeg,.png,.webp,image/*"
+                           onchange="previewProfileAvatar(this)" />
+
+                    <span asp-validation-for="AvatarFile" class="text-danger small"></span>
+
+                    <small class="text-muted">
+                        Chỉ cho phép JPG, JPEG, PNG, WEBP. Tối đa 2MB.
+                    </small>
+                </div>
+
+            </div>
+
+            <div class="alert alert-light border">
+                <p class="mb-1">
+                    <strong>Vai trò:</strong>
+                    @(Model.Role == "Admin" ? "Quản trị viên" : "Nhân viên")
+                </p>
+
+                <p class="mb-1">
+                    <strong>Ngày tạo:</strong>
+                    @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                </p>
+
+                <p class="mb-0">
+                    <strong>Đăng nhập gần nhất:</strong>
+                    @(Model.LastLoginAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có")
+                </p>
+            </div>
+
+            <div class="text-end border-top pt-3">
+                <a asp-action="ChangePassword" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-key me-1"></i> Đổi mật khẩu
+                </a>
+
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Cập nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function previewProfileAvatar(input) {
+            const file = input.files && input.files[0];
+            const preview = document.getElementById('profileAvatarPreview');
+
+            if (!file || !preview) {
+                return;
+            }
+
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+            if (!allowedTypes.includes(file.type)) {
+                alert('Chỉ cho phép chọn ảnh JPG, PNG hoặc WEBP.');
+                input.value = '';
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Dung lượng ảnh không được vượt quá 2MB.');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+            };
+
+            reader.readAsDataURL(file);
+        }
+    </script>
+}

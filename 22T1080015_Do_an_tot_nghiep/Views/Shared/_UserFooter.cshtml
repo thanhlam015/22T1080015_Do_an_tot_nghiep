@@ -1,0 +1,49 @@
+﻿<footer class="user-footer mt-5">
+    <div class="container py-5">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h4 class="fw-bold text-white">
+                    <i class="fa-solid fa-earth-asia me-2"></i>TravelBot
+                </h4>
+
+                <p class="text-white-50 mb-0">
+                    Hệ thống tra cứu và gợi ý nơi lưu trú du lịch ứng dụng RAG và Vector Database.
+                </p>
+            </div>
+
+            <div class="col-lg-2 col-md-4">
+                <h6 class="text-white fw-bold">Khám phá</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a asp-controller="Users" asp-action="Index">Trang chủ</a></li>
+                    <li><a asp-controller="Users" asp-action="SearchResults">Tìm nơi lưu trú</a></li>
+                    <li><a asp-controller="Users" asp-action="Like">Đã lưu</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-3 col-md-4">
+                <h6 class="text-white fw-bold">Tài khoản</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a asp-controller="Users" asp-action="Profile">Thông tin cá nhân</a></li>
+                    <li><a asp-controller="Users" asp-action="Bookings">Chuyến đi và nơi ở</a></li>
+                    <li><a asp-controller="Users" asp-action="Reviews">Đánh giá</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-3 col-md-4">
+                <h6 class="text-white fw-bold">Liên hệ</h6>
+                <p class="text-white-50 mb-1">
+                    <i class="fa-solid fa-envelope me-2"></i>support@travelbot.vn
+                </p>
+                <p class="text-white-50 mb-0">
+                    <i class="fa-solid fa-phone me-2"></i>0900 000 000
+                </p>
+            </div>
+        </div>
+
+        <hr class="border-light opacity-25 my-4" />
+
+        <div class="text-center text-white-50 small">
+            © @DateTime.Now.Year TravelBot. Đồ án tốt nghiệp.
+        </div>
+    </div>
+</footer>

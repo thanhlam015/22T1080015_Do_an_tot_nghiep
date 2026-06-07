@@ -1,0 +1,107 @@
+﻿@using Microsoft.AspNetCore.Authentication
+@using System.Security.Claims
+
+@{
+    var authResult = await Context.AuthenticateAsync("UserCookie");
+
+    var userPrincipal = authResult.Succeeded ? authResult.Principal : null;
+
+    bool isLoggedIn =
+        userPrincipal?.Identity?.IsAuthenticated == true &&
+        userPrincipal.IsInRole("Customer");
+
+    string displayName = userPrincipal?.FindFirstValue(ClaimTypes.Name) ?? "Tài khoản";
+    string email = userPrincipal?.FindFirstValue(ClaimTypes.Email) ?? "";
+    string avatarUrl = userPrincipal?.FindFirstValue("AvatarUrl") ?? "";
+
+    string firstLetter = string.IsNullOrWhiteSpace(displayName)
+        ? "U"
+        : displayName.Trim().Substring(0, 1).ToUpper();
+}
+
+<nav class="navbar navbar-expand-lg user-navbar py-3 shadow-sm sticky-top">
+    <div class="container">
+        <a class="navbar-brand text-white fw-bold fs-4" asp-controller="Users" asp-action="Index">
+            <i class="fa-solid fa-earth-asia me-2"></i>TravelBot
+        </a>
+
+        <button class="navbar-toggler bg-light"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#userNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="userNavbar">
+            @if (isLoggedIn)
+            {
+                <div class="dropdown">
+                    <button class="btn btn-light text-primary fw-semibold rounded-pill px-3 py-2 d-flex align-items-center gap-2 shadow-sm"
+                            type="button"
+                            data-bs-toggle="dropdown">
+
+                        @if (!string.IsNullOrWhiteSpace(avatarUrl))
+                        {
+                            <img src="@avatarUrl"
+                                 alt="@displayName"
+                                 style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <span class="avatar-circle" style="width:28px;height:28px;font-size:12px;">
+                                @firstLetter
+                            </span>
+                        }
+
+                        @displayName
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3">
+                        <li>
+                            <a class="dropdown-item py-2" asp-controller="Users" asp-action="Profile">
+                                <i class="fa-regular fa-user me-2 text-secondary"></i>Tài khoản
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item py-2" asp-controller="Users" asp-action="Bookings">
+                                <i class="fa-solid fa-suitcase-rolling me-2 text-secondary"></i>Chuyến đi và nơi ở
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item py-2" asp-controller="Users" asp-action="Reviews">
+                                <i class="fa-regular fa-star me-2 text-secondary"></i>Đánh giá
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item py-2" asp-controller="Users" asp-action="Like">
+                                <i class="fa-regular fa-heart me-2 text-secondary"></i>Đã lưu
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider" /></li>
+
+                        <li>
+                            <form asp-controller="Users" asp-action="Logout" method="post" class="m-0">
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit" class="dropdown-item py-2 text-danger">
+                                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <a asp-controller="Users" asp-action="Auth" class="btn btn-light rounded-pill fw-bold px-4">
+                    <i class="fa-solid fa-right-to-bracket me-1"></i> Đăng nhập
+                </a>
+            }
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,374 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.PromotionVM
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="Code" class="form-label fw-bold"></label>
+        <input asp-for="Code" class="form-control text-uppercase" placeholder="VD: SUMMER2026" />
+        <span asp-validation-for="Code" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-8 mb-3">
+        <label asp-for="Title" class="form-label fw-bold"></label>
+        <input asp-for="Title" class="form-control" placeholder="VD: Ưu đãi mùa hè 2026" />
+        <span asp-validation-for="Title" class="text-danger small"></span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <label asp-for="DiscountType" class="form-label fw-bold"></label>
+        <select asp-for="DiscountType" class="form-select" id="DiscountType" onchange="handleDiscountTypeChange()">
+            <option value="Percent">Giảm theo phần trăm</option>
+            <option value="Amount">Giảm số tiền cố định</option>
+        </select>
+        <span asp-validation-for="DiscountType" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="DiscountValue" class="form-label fw-bold"></label>
+
+        <input asp-for="DiscountValue" type="hidden" id="DiscountValue" />
+
+        <div class="input-group">
+            <input type="text"
+                   id="DiscountValueDisplay"
+                   class="form-control money-format"
+                   inputmode="numeric"
+                   autocomplete="off"
+                   value="@Model.DiscountValue.ToString("N0")"
+                   oninput="handleDiscountValueInput()" />
+
+            <span class="input-group-text" id="DiscountUnit">%</span>
+        </div>
+
+        <span asp-validation-for="DiscountValue" class="text-danger small"></span>
+        <small class="text-muted" id="DiscountValueHelp">
+            Nếu loại là %, chỉ được nhập từ 1 đến 100.
+        </small>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="MaxDiscountAmount" class="form-label fw-bold"></label>
+
+        <input asp-for="MaxDiscountAmount" type="hidden" id="MaxDiscountAmount" />
+
+        <div class="input-group">
+            <input type="text"
+                   id="MaxDiscountAmountDisplay"
+                   class="form-control money-format"
+                   inputmode="numeric"
+                   autocomplete="off"
+                   value="@(Model.MaxDiscountAmount.HasValue? Model.MaxDiscountAmount.Value.ToString("N0") : "")"
+                   oninput="syncMoneyInput('MaxDiscountAmountDisplay', 'MaxDiscountAmount')" />
+
+            <span class="input-group-text">đ</span>
+        </div>
+
+        <span asp-validation-for="MaxDiscountAmount" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="MinBookingAmount" class="form-label fw-bold"></label>
+
+        <input asp-for="MinBookingAmount" type="hidden" id="MinBookingAmount" />
+
+        <div class="input-group">
+            <input type="text"
+                   id="MinBookingAmountDisplay"
+                   class="form-control money-format"
+                   inputmode="numeric"
+                   autocomplete="off"
+                   value="@Model.MinBookingAmount.ToString("N0")"
+                   oninput="syncMoneyInput('MinBookingAmountDisplay', 'MinBookingAmount')" />
+
+            <span class="input-group-text">đ</span>
+        </div>
+
+        <span asp-validation-for="MinBookingAmount" class="text-danger small"></span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <label asp-for="StartDate" class="form-label fw-bold"></label>
+        <input asp-for="StartDate" type="datetime-local" class="form-control" />
+        <span asp-validation-for="StartDate" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="EndDate" class="form-label fw-bold"></label>
+        <input asp-for="EndDate" type="datetime-local" class="form-control" />
+        <span asp-validation-for="EndDate" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-2 mb-3">
+        <label asp-for="UsageLimit" class="form-label fw-bold"></label>
+        <input asp-for="UsageLimit"
+               type="number"
+               min="1"
+               step="1"
+               class="form-control number-stepper" />
+        <span asp-validation-for="UsageLimit" class="text-danger small"></span>
+        <small class="text-muted">Bỏ trống nếu không giới hạn.</small>
+    </div>
+
+    <div class="col-md-2 mb-3">
+        <label asp-for="PerUserLimit" class="form-label fw-bold"></label>
+        <input asp-for="PerUserLimit"
+               type="number"
+               min="1"
+               step="1"
+               class="form-control number-stepper" />
+        <span asp-validation-for="PerUserLimit" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-2 mb-3">
+        <label asp-for="Status" class="form-label fw-bold"></label>
+        <select asp-for="Status" class="form-select">
+            <option value="Active">Đang bật</option>
+            <option value="Inactive">Đang tắt</option>
+        </select>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Description" class="form-label fw-bold"></label>
+    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập mô tả ngắn cho chương trình khuyến mãi..."></textarea>
+    <span asp-validation-for="Description" class="text-danger small"></span>
+</div>
+
+<div class="mb-4">
+    <label class="form-label fw-bold">Ảnh banner khuyến mãi</label>
+
+    <input type="hidden" asp-for="BannerImageUrl" />
+
+    <div class="mb-2">
+        @if (!string.IsNullOrWhiteSpace(Model.BannerImageUrl))
+        {
+            <img id="bannerPreview"
+                 src="@Model.BannerImageUrl"
+                 class="rounded border shadow-sm"
+                 style="width:260px; height:130px; object-fit:cover;" />
+        }
+        else
+        {
+            <img id="bannerPreview"
+                 src=""
+                 class="rounded border shadow-sm d-none"
+                 style="width:260px; height:130px; object-fit:cover;" />
+        }
+    </div>
+
+    <input asp-for="BannerFile"
+           type="file"
+           class="form-control"
+           accept=".jpg,.jpeg,.png,.webp,image/*"
+           onchange="previewPromotionBanner(this)" />
+
+    <span asp-validation-for="BannerFile" class="text-danger small"></span>
+
+    <small class="text-muted">Chỉ cho phép JPG, JPEG, PNG, WEBP. Tối đa 3MB.</small>
+</div>
+
+<div class="border-start border-4 border-primary ps-2 mb-3">
+    <h6 class="fw-bold text-secondary mb-0">Phạm vi áp dụng</h6>
+</div>
+
+<div class="alert alert-info small">
+    Nếu không chọn nơi lưu trú nào, khuyến mãi sẽ được áp dụng cho tất cả nơi lưu trú.
+</div>
+
+<div class="row mb-4">
+    @if (Model.AvailableAccommodations != null && Model.AvailableAccommodations.Any())
+    {
+        foreach (var item in Model.AvailableAccommodations)
+        {
+            <div class="col-md-4 mb-2">
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="acc_@item.Id"
+                           name="SelectedAccommodationIds"
+                           value="@item.Id"
+                           checked="@(Model.SelectedAccommodationIds != null && Model.SelectedAccommodationIds.Contains(item.Id) ? "checked" : null)" />
+
+                    <label class="form-check-label" for="acc_@item.Id">
+                        @item.Name
+                    </label>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <span class="text-muted fst-italic">Chưa có nơi lưu trú nào.</span>
+        </div>
+    }
+</div>
+
+<style>
+    .money-format {
+        text-align: right;
+        font-weight: 600;
+    }
+
+        .money-format::-webkit-outer-spin-button,
+        .money-format::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+    .money-format {
+        -moz-appearance: textfield;
+    }
+
+    .number-stepper {
+        font-weight: 600;
+        text-align: center;
+    }
+</style>
+
+<script>
+    function onlyDigits(value) {
+        return (value || '').toString().replace(/[^\d]/g, '');
+    }
+
+    function formatVietnameseNumber(value) {
+        const digits = onlyDigits(value);
+
+        if (!digits) {
+            return '';
+        }
+
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function syncMoneyInput(displayId, hiddenId) {
+        const displayInput = document.getElementById(displayId);
+        const hiddenInput = document.getElementById(hiddenId);
+
+        if (!displayInput || !hiddenInput) {
+            return;
+        }
+
+        const digits = onlyDigits(displayInput.value);
+
+        displayInput.value = formatVietnameseNumber(digits);
+        hiddenInput.value = digits || '';
+    }
+
+    function handleDiscountTypeChange() {
+        const discountType = document.getElementById('DiscountType')?.value;
+        const discountUnit = document.getElementById('DiscountUnit');
+        const help = document.getElementById('DiscountValueHelp');
+
+        if (discountType === 'Percent') {
+            discountUnit.innerText = '%';
+            help.innerText = 'Nếu loại là %, chỉ được nhập từ 1 đến 100.';
+        } else {
+            discountUnit.innerText = 'đ';
+            help.innerText = 'Nếu loại là số tiền, hệ thống sẽ tự thêm dấu chấm hàng nghìn.';
+        }
+
+        handleDiscountValueInput();
+    }
+
+    function handleDiscountValueInput() {
+        const discountType = document.getElementById('DiscountType')?.value;
+        const displayInput = document.getElementById('DiscountValueDisplay');
+        const hiddenInput = document.getElementById('DiscountValue');
+
+        if (!displayInput || !hiddenInput) {
+            return;
+        }
+
+        let digits = onlyDigits(displayInput.value);
+
+        if (!digits) {
+            displayInput.value = '';
+            hiddenInput.value = '';
+            return;
+        }
+
+        let value = parseInt(digits, 10);
+
+        if (discountType === 'Percent') {
+            if (value > 100) {
+                value = 100;
+            }
+
+            if (value < 1) {
+                value = 1;
+            }
+
+            displayInput.value = value.toString();
+            hiddenInput.value = value.toString();
+        } else {
+            displayInput.value = formatVietnameseNumber(value.toString());
+            hiddenInput.value = value.toString();
+        }
+    }
+
+    function preparePromotionFormSubmit() {
+        handleDiscountValueInput();
+        syncMoneyInput('MaxDiscountAmountDisplay', 'MaxDiscountAmount');
+        syncMoneyInput('MinBookingAmountDisplay', 'MinBookingAmount');
+
+        const maxDiscountHidden = document.getElementById('MaxDiscountAmount');
+        const maxDiscountDisplay = document.getElementById('MaxDiscountAmountDisplay');
+
+        if (maxDiscountDisplay && maxDiscountHidden && !onlyDigits(maxDiscountDisplay.value)) {
+            maxDiscountHidden.value = '';
+        }
+    }
+
+    function previewPromotionBanner(input) {
+        const file = input.files && input.files[0];
+        const preview = document.getElementById('bannerPreview');
+
+        if (!file || !preview) {
+            return;
+        }
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert('Chỉ cho phép chọn ảnh JPG, PNG hoặc WEBP.');
+            input.value = '';
+            return;
+        }
+
+        if (file.size > 3 * 1024 * 1024) {
+            alert('Dung lượng ảnh không được vượt quá 3MB.');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.classList.remove('d-none');
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        handleDiscountTypeChange();
+
+        syncMoneyInput('MaxDiscountAmountDisplay', 'MaxDiscountAmount');
+        syncMoneyInput('MinBookingAmountDisplay', 'MinBookingAmount');
+
+        const form = document.querySelector('form');
+
+        if (form) {
+            form.addEventListener('submit', function () {
+                preparePromotionFormSubmit();
+            });
+        }
+    });
+</script>

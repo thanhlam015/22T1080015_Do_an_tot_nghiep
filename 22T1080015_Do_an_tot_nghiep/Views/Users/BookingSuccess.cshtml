@@ -1,0 +1,148 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.UserBookingSuccessVM
+
+@{
+    ViewData["Title"] = "Đặt phòng thành công";
+    Layout = "_LayoutUser";
+}
+
+<div class="user-card p-4 booking-success-card">
+    <div class="text-center mb-4">
+        <div class="success-icon mx-auto mb-3">
+            <i class="fa-solid fa-check"></i>
+        </div>
+
+        <h2 class="fw-bold">Đặt phòng thành công</h2>
+
+        <p class="text-muted mb-0">
+            Mã đặt phòng của bạn là <strong>#@Model.BookingId</strong>
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="booking-info-box">
+                <h5 class="fw-bold mb-3">Thông tin đơn đặt phòng</h5>
+
+                <div class="summary-row">
+                    <span>Nơi lưu trú</span>
+                    <strong>@Model.AccommodationName</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Loại phòng</span>
+                    <strong>@Model.RoomType</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Ngày lưu trú</span>
+                    <strong>
+                        @Model.CheckInDate.ToString("dd/MM/yyyy")
+                        -
+                        @Model.CheckOutDate.ToString("dd/MM/yyyy")
+                    </strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Số lượng</span>
+                    <strong>
+                        @Model.RoomCount phòng · @Model.AdultCount người lớn · @Model.ChildCount trẻ em
+                    </strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Trạng thái đơn</span>
+                    <strong>@Model.BookingStatus</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Thanh toán</span>
+                    <strong>@Model.PaymentStatus</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Tổng tiền</span>
+                    <strong class="text-danger">@Model.TotalPrice.ToString("N0")đ</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            @if (Model.PaymentMethod == "VietQR")
+            {
+                <div class="qr-payment-box text-center">
+                    <h5 class="fw-bold mb-2">Chuyển khoản bằng mã QR</h5>
+
+                    <p class="text-muted">
+                        Quét mã QR bằng ứng dụng ngân hàng, kiểm tra thông tin và xác nhận chuyển khoản.
+                        Đơn sẽ được cập nhật thanh toán sau khi Admin kiểm tra giao dịch.
+                    </p>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.QrImageUrl))
+                    {
+                        <img src="@Model.QrImageUrl"
+                             class="vietqr-img"
+                             alt="QR thanh toán"
+                             onerror="this.style.display='none'; document.getElementById('qrErrorBox').classList.remove('d-none');" />
+
+                        <div id="qrErrorBox" class="alert alert-warning d-none mt-3">
+                            Không tải được mã QR. Vui lòng kiểm tra BankId, số tài khoản hoặc template VietQR trong appsettings.json.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            Chưa cấu hình thông tin VietQR trong appsettings.json.
+                        </div>
+                    }
+
+                    <div class="text-start mt-3">
+                        <p class="mb-1">
+                            <strong>Số tài khoản:</strong> @Model.BankAccountNo
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Chủ tài khoản:</strong> @Model.BankAccountName
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Số tiền:</strong> @Model.TotalPrice.ToString("N0")đ
+                        </p>
+
+                        <p class="mb-0">
+                            <strong>Nội dung:</strong> @Model.TransferContent
+                        </p>
+                    </div>
+
+                    <div class="alert alert-info mt-3 mb-0">
+                        Lưu ý: Quét QR không tự động trừ tiền nếu bạn chưa xác nhận trong ứng dụng ngân hàng.
+                        Sau khi chuyển khoản thành công, Admin sẽ kiểm tra và cập nhật trạng thái thanh toán.
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="cash-payment-box">
+                    <h5 class="fw-bold mb-2">Thanh toán tiền mặt</h5>
+
+                    <p class="text-muted mb-0">
+                        Đơn của bạn đang chờ xác nhận. Bạn sẽ thanh toán trực tiếp tại nơi lưu trú hoặc theo hướng dẫn của quản trị viên.
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        <a asp-controller="Users"
+           asp-action="Bookings"
+           class="btn btn-primary rounded-pill px-4 fw-bold">
+            Xem đơn đặt phòng
+        </a>
+
+        <a asp-controller="Users"
+           asp-action="Index"
+           class="btn btn-outline-secondary rounded-pill px-4">
+            Về trang chủ
+        </a>
+    </div>
+</div>

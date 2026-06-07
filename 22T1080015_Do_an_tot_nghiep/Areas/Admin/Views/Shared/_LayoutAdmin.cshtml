@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Admin TravelBot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            background: #343a40;
+            color: #fff;
+            z-index: 1000;
+        }
+
+            .sidebar .logo {
+                font-size: 1.5rem;
+                font-weight: bold;
+                padding: 20px;
+                text-align: center;
+                border-bottom: 1px solid #4f5962;
+            }
+
+            .sidebar a {
+                color: #c2c7d0;
+                text-decoration: none;
+                padding: 12px 20px;
+                display: block;
+                transition: 0.2s;
+            }
+
+                .sidebar a:hover, .sidebar a.active {
+                    background: #007bff;
+                    color: #fff;
+                    border-left: 4px solid #fff;
+                }
+
+        .main-wrapper {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        .stat-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,.05);
+            transition: transform 0.2s;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .icon-box {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+
+        .table-custom {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background-color: #dc3545;
+            border-radius: 50%;
+            border: 2px solid #f4f6f9;
+        }
+
+        .stat-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.12) !important;
+                filter: brightness(1.05);
+            }
+
+        .hov-pointer {
+            cursor: pointer;
+        }
+    </style>
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <partial name="_Sidebar" />
+
+    <div class="main-wrapper">
+        <partial name="_Navbar" />
+
+        @RenderBody()
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

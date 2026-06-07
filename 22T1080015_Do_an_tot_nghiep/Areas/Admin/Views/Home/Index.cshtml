@@ -1,0 +1,161 @@
+﻿@model IEnumerable<_22T1080015_Do_an_tot_nghiep.Models.Booking>
+@{
+    ViewData["Title"] = "Tổng quan hệ thống";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <a asp-area="Admin" asp-controller="Accommodations" asp-action="Index" class="text-decoration-none">
+            <div class="card stat-card bg-primary text-white p-4 h-100 border-0 shadow-sm hov-pointer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Nơi lưu trú</h6>
+                        <h2 class="mb-0 fw-bold">@ViewBag.TotalAccommodations</h2>
+                    </div>
+                    <i class="fa-solid fa-hotel icon-box"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="fw-bold text-primary mb-0">
+                <i class="fa-solid fa-comments me-2"></i> Câu hỏi bot được hỏi nhiều nhất
+            </h5>
+        </div>
+
+        <div class="card-body">
+            @if (ViewBag.TopBotQuestions != null)
+            {
+                foreach (var item in ViewBag.TopBotQuestions)
+                {
+                    <div class="border-bottom pb-2 mb-2">
+                        <div class="fw-bold">@item.Question</div>
+                        <small class="text-muted">
+                            @item.Count lượt hỏi · gần nhất @item.LastAskedAt.ToString("dd/MM/yyyy HH:mm")
+                        </small>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted mb-0">
+                    Chưa có câu hỏi nào từ chatbot.
+                </p>
+            }
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <a asp-area="Admin" asp-controller="Bookings" asp-action="Index" class="text-decoration-none">
+            <div class="card stat-card bg-success text-white p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1 opacity-75">Tổng đơn đặt</h6>
+                        <h2 class="mb-0 fw-bold">@ViewBag.TotalBookings</h2>
+                    </div>
+                    <i class="fa-solid fa-calendar-check icon-box"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a asp-area="Admin" asp-controller="Customers" asp-action="Index" class="text-decoration-none">
+        <div class="card stat-card bg-warning text-white p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Khách hàng</h6>
+                    <h2 class="mb-0 fw-bold">@ViewBag.TotalUsers</h2>
+                </div>
+                <i class="fa-solid fa-users icon-box"></i>
+            </div>
+        </div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm table-custom">
+            <div class="card-header bg-white pt-3 pb-2 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold text-secondary">Lịch đặt phòng mới nhất</h5>
+                <a asp-area="Admin"
+                   asp-controller="Bookings"
+                   asp-action="Index"
+                   class="btn btn-sm btn-outline-primary">
+                    Xem tất cả
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã Đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>#@item.Id</td>
+                                <td>@(item.User?.FullName ?? "N/A")</td>
+                                <td>@item.CheckInDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="fw-bold">@item.TotalPrice.ToString("N0")đ</td>
+                                <td>
+                                    <span class="badge @(item.Status == "Completed" ? "bg-success" : "bg-warning")">
+                                        @item.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm table-custom h-100">
+            <div class="card-header bg-white pt-3 pb-2">
+                <h5 class="mb-0 fw-bold text-secondary">Đánh giá mới</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+
+                    @if (ViewBag.RecentReviews != null)
+                    {
+                        foreach (var review in ViewBag.RecentReviews)
+                        {
+                            <li class="list-group-item p-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="fw-bold">@(review.User?.FullName ?? "Khách ẩn danh")</span>
+                                    <span class="text-warning small">
+                                        <i class="fa-solid fa-star"></i> @review.Rating
+                                    </span>
+                                </div>
+                                <small class="text-muted d-block mb-1">@(review.Accommodation?.Name ?? "Dịch vụ chung")</small>
+                                <p class="mb-0 small text-secondary">"@review.Comment"</p>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item p-3 text-center text-muted small">
+                            Chưa có đánh giá nào.
+                        </li>
+                    }
+
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

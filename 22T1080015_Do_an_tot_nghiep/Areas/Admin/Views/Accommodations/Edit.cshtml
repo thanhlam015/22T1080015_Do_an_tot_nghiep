@@ -1,0 +1,188 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.AccommodationVM
+@{
+    ViewData["Title"] = "Chỉnh sửa nơi lưu trú";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="fw-bold text-primary mb-0">Chỉnh sửa nơi lưu trú</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" enctype="multipart/form-data">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" asp-for="Id" />
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Tên nơi lưu trú</label>
+                    <input asp-for="Name" class="form-control" required />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-bold">Tỉnh/Thành phố</label>
+                    <select asp-for="DistrictId" class="form-select" asp-items="Model.Districts">
+                        <option value="">-- Chọn Tỉnh/Thành --</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-bold">Loại hình</label>
+                    <select asp-for="PropertyTypeId" class="form-select" asp-items="Model.PropertyTypes">
+                        <option value="">-- Chọn Loại hình --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-9 mb-3">
+                    <label class="form-label fw-bold">Địa chỉ chi tiết</label>
+                    <input asp-for="Address" class="form-control" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-bold">Xếp hạng sao (1-5)</label>
+                    <input asp-for="StarRating" type="number" min="1" max="5" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tải ảnh lên (Chọn nhiều ảnh cùng lúc)</label>
+                <input type="file" id="imageInput" asp-for="UploadImages" class="form-control" multiple accept="image/*" />
+
+                <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-secondary">Hình ảnh hiện tại (Bấm X để xóa)</label>
+
+                <div class="d-flex flex-wrap gap-2" id="existingImages">
+                    @if (Model.ExistingImages != null && Model.ExistingImages.Any())
+                    {
+                        foreach (var img in Model.ExistingImages)
+                        {
+                            <div class="position-relative" id="img-container-@img.ImageId">
+                                <img src="@img.ImageUrl"
+                                     class="rounded border"
+                                     style="width:120px; height:120px; object-fit:cover;" />
+
+                                <button type="button"
+                                        class="btn btn-danger btn-sm position-absolute top-0 end-0"
+                                        onclick="deleteImage(@img.ImageId)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted fst-italic">Chưa có ảnh nào.</span>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Mô tả chi tiết</label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="form-label fw-bold text-primary border-bottom pb-2 w-100">Tiện ích Nơi lưu trú</label>
+                <div class="row mt-2">
+                    @* FIX: Kiểm tra NULL để tránh lỗi màn hình vàng *@
+                    @if (Model.AvailableAmenities != null && Model.AvailableAmenities.Any())
+                    {
+                        foreach (var amenity in Model.AvailableAmenities)
+                        {
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="SelectedAmenityIds" value="@amenity.Id"
+                                           @(Model.SelectedAmenityIds != null && Model.SelectedAmenityIds.Contains(amenity.Id) ? "checked" : "") />
+                                    <label class="form-check-label">@amenity.Name</label>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12"><span class="text-danger fst-italic">Chưa có dữ liệu tiện ích để hiển thị.</span></div>
+                    }
+                </div>
+            </div>
+
+            <div class="text-end border-top pt-3">
+                <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+                <button type="submit" class="btn btn-primary px-4">Lưu dữ liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function (e) {
+            var previewContainer = document.getElementById('imagePreview');
+            previewContainer.innerHTML = '';
+
+            var files = e.target.files;
+            if (files) {
+                Array.from(files).forEach(file => {
+                    var reader = new FileReader();
+
+                    reader.onload = function (event) {
+                        var img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.className = 'img-thumbnail shadow-sm';
+                        img.style.width = '150px';
+                        img.style.height = '150px';
+                        img.style.objectFit = 'cover';
+
+                        previewContainer.appendChild(img);
+                    }
+
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+
+        async function deleteImage(id) {
+            if (!confirm("Bạn có chắc chắn muốn xóa ảnh này không?")) {
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const imageContainer = document.getElementById('img-container-' + id);
+
+            try {
+                const response = await fetch('@Url.Action("DeleteImage", "Accommodations", new { area = "Admin" })', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'RequestVerificationToken': token ?? ''
+                    },
+                    body: new URLSearchParams({
+                        imageId: id
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    alert("Lỗi: " + (result.message || "Không thể xóa ảnh."));
+                    return;
+                }
+
+                if (imageContainer) {
+                    imageContainer.style.transition = 'opacity 0.25s ease';
+                    imageContainer.style.opacity = '0';
+
+                    setTimeout(() => {
+                        imageContainer.remove();
+                    }, 250);
+                }
+            }
+            catch (error) {
+                console.error(error);
+                alert("Lỗi hệ thống: Không gửi được yêu cầu xóa ảnh.");
+            }
+        }
+    </script>
+}

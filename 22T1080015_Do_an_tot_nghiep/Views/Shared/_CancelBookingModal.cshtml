@@ -1,0 +1,45 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.UserBookingItemVM
+
+@{
+    string modalId = $"cancelBookingModal_{Model.BookingId}";
+}
+
+<div class="modal fade" id="@modalId" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <form asp-controller="Users" asp-action="CancelBooking" asp-route-id="@Model.BookingId" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger fw-bold">
+                        <i class="fa-solid fa-ban me-1"></i> Hủy đặt phòng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p>
+                        Bạn có chắc chắn muốn hủy đơn đặt phòng tại
+                        <strong>@Model.AccommodationName</strong> không?
+                    </p>
+
+                    <label class="form-label">Lý do hủy</label>
+                    <textarea name="reason"
+                              class="form-control"
+                              rows="3"
+                              placeholder="VD: Tôi muốn thay đổi lịch trình..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">
+                        Đóng
+                    </button>
+
+                    <button type="submit" class="btn btn-danger rounded-pill">
+                        Xác nhận hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

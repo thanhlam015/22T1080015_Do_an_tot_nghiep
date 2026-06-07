@@ -1,0 +1,243 @@
+﻿@model IEnumerable<_22T1080015_Do_an_tot_nghiep.Models.BookingListItemVM>
+
+@{
+    ViewData["Title"] = "Quản lý đặt phòng";
+    Layout = "_LayoutAdmin";
+
+    string selectedStatus = Convert.ToString(ViewBag.Status);
+    string selectedPaymentStatus = Convert.ToString(ViewBag.PaymentStatus);
+}
+
+@functions {
+    string GetStatusBadge(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Confirmed" => "bg-primary",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "Pending" => "Chờ xác nhận",
+            "Confirmed" => "Đã xác nhận",
+            "Completed" => "Hoàn tất",
+            "Cancelled" => "Đã hủy",
+            _ => status
+        };
+    }
+
+    string GetPaymentBadge(string? status)
+    {
+        return status switch
+        {
+            "Paid" => "bg-success",
+            "Unpaid" => "bg-secondary",
+            "Refunded" => "bg-info",
+            _ => "bg-light text-dark border"
+        };
+    }
+
+    string GetPaymentText(string? status)
+    {
+        return status switch
+        {
+            "Paid" => "Đã thanh toán",
+            "Unpaid" => "Chưa thanh toán",
+            "Refunded" => "Đã hoàn tiền",
+            _ => "Chưa cập nhật"
+        };
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-secondary mb-0">
+        <i class="fa-solid fa-calendar-check text-primary me-2"></i> Quản lý đặt phòng
+    </h4>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fa-solid fa-circle-xmark me-1"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <input type="text"
+                       name="keyword"
+                       value="@ViewBag.Keyword"
+                       class="form-control"
+                       placeholder="Mã đơn, khách hàng, SĐT, email..." />
+            </div>
+
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">Trạng thái đơn</option>
+                    <option value="Pending" selected="@(selectedStatus == "Pending" ? "selected" : null)">Chờ xác nhận</option>
+                    <option value="Confirmed" selected="@(selectedStatus == "Confirmed" ? "selected" : null)">Đã xác nhận</option>
+                    <option value="Completed" selected="@(selectedStatus == "Completed" ? "selected" : null)">Hoàn tất</option>
+                    <option value="Cancelled" selected="@(selectedStatus == "Cancelled" ? "selected" : null)">Đã hủy</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <select name="paymentStatus" class="form-select">
+                    <option value="">Thanh toán</option>
+                    <option value="Unpaid" selected="@(selectedPaymentStatus == "Unpaid" ? "selected" : null)">Chưa thanh toán</option>
+                    <option value="Paid" selected="@(selectedPaymentStatus == "Paid" ? "selected" : null)">Đã thanh toán</option>
+                    <option value="Refunded" selected="@(selectedPaymentStatus == "Refunded" ? "selected" : null)">Đã hoàn tiền</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <input type="date" name="dateFrom" value="@ViewBag.DateFrom" class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <input type="date" name="dateTo" value="@ViewBag.DateTo" class="form-control" />
+            </div>
+
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-secondary">
+                    <i class="fa-solid fa-filter"></i>
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm table-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary">
+                    <tr>
+                        <th class="ps-3">Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Nơi lưu trú</th>
+                        <th>Thời gian ở</th>
+                        <th class="text-center">Số lượng</th>
+                        <th class="text-end">Tổng tiền</th>
+                        <th>Thanh toán</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-3">Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-bold text-primary">
+                                    #@item.Id
+                                    <br />
+                                    <small class="text-muted">
+                                        @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                </td>
+
+                                <td>
+                                    <div class="fw-bold">@item.CustomerName</div>
+                                    <small class="text-muted d-block">@item.PhoneNumber</small>
+                                    <small class="text-muted d-block">@item.Email</small>
+                                </td>
+
+                                <td>
+                                    <div class="fw-bold">@item.AccommodationName</div>
+                                    <small class="text-muted">@item.RoomType</small>
+                                </td>
+
+                                <td>
+                                    <div>
+                                        <i class="fa-solid fa-right-to-bracket text-muted me-1"></i>
+                                        @item.CheckInDate.ToString("dd/MM/yyyy")
+                                    </div>
+                                    <div>
+                                        <i class="fa-solid fa-right-from-bracket text-muted me-1"></i>
+                                        @item.CheckOutDate.ToString("dd/MM/yyyy")
+                                    </div>
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">
+                                        @item.NumberOfRooms phòng
+                                    </span>
+                                    <br />
+                                    <small class="text-muted">
+                                        @item.AdultCount người lớn, @item.ChildCount trẻ em
+                                    </small>
+                                </td>
+
+                                <td class="text-end fw-bold text-danger">
+                                    @item.TotalPrice.ToString("N0")đ
+                                </td>
+
+                                <td>
+                                    <span class="badge @GetPaymentBadge(item.PaymentStatus)">
+                                        @GetPaymentText(item.PaymentStatus)
+                                    </span>
+
+                                    <br />
+
+                                    <small class="text-muted">
+                                        @(item.PaymentMethod ?? "Chưa cập nhật")
+                                    </small>
+                                </td>
+
+                                <td>
+                                    <span class="badge @GetStatusBadge(item.Status)">
+                                        @GetStatusText(item.Status)
+                                    </span>
+                                </td>
+
+                                <td class="text-end pe-3">
+                                    <a asp-action="Details"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-info">
+                                        <i class="fa-solid fa-eye me-1"></i> Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                <i class="fa-solid fa-circle-info me-1"></i>
+                                Không tìm thấy đơn đặt phòng phù hợp.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <partial name="_AdminPagination" />
+    </div>
+</div>

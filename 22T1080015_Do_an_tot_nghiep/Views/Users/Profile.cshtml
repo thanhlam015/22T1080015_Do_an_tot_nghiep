@@ -1,0 +1,169 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.UserProfileVM
+
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    ViewData["ActiveMenu"] = "Profile";
+    Layout = "_LayoutUser";
+
+    string displayName = string.IsNullOrWhiteSpace(Model.FullName) ? "Tài khoản" : Model.FullName;
+    string avatarUrl = string.IsNullOrWhiteSpace(Model.AvatarUrl)
+        ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(displayName)}&background=0d6efd&color=fff&size=128"
+        : Model.AvatarUrl;
+}
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        @* <div class="user-card p-4 text-center mb-4">
+            <label for="AvatarFile" class="avatar-upload mb-3">
+                <img id="avatarPreview" src="@avatarUrl" class="avatar-preview" />
+                <span class="avatar-upload-badge">
+                    <i class="fa-solid fa-camera small"></i>
+                </span>
+            </label>
+
+            <h5 class="fw-bold mb-1">@displayName</h5>
+            <small class="text-muted">@Model.Email</small>
+        </div> *@
+
+        <partial name="_UserSidebar" />
+    </div>
+
+    <div class="col-lg-9">
+        <div class="user-card p-4">
+            <h4 class="user-page-title mb-4">Thông tin cá nhân</h4>
+
+            <form asp-controller="Users"
+                  asp-action="Profile"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="row g-4 mb-5">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="UserId" />
+                <input type="hidden" asp-for="Email" />
+                <input type="hidden" asp-for="AvatarUrl" />
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Ảnh đại diện</label>
+                    <input asp-for="AvatarFile"
+                           id="AvatarFile"
+                           type="file"
+                           class="form-control bg-light border-0 py-2"
+                           accept=".jpg,.jpeg,.png,.webp,image/*"
+                           onchange="previewSidebarAvatar(this)" />
+                    <span asp-validation-for="AvatarFile" class="text-danger small"></span>
+                    <small class="text-muted">
+                        Chọn ảnh mới, ảnh ở sidebar sẽ được xem trước ngay. Bấm "Lưu thay đổi" để cập nhật chính thức.
+                    </small>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="FullName" class="form-label fw-semibold">Họ và tên</label>
+                    <input asp-for="FullName" class="form-control bg-light border-0 py-2" />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="PhoneNumber" class="form-label fw-semibold">Số điện thoại</label>
+                    <input asp-for="PhoneNumber" class="form-control bg-light border-0 py-2" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Email tài khoản</label>
+                    <input value="@Model.Email" class="form-control text-muted" readonly />
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+
+            <hr class="mb-4" />
+
+            <h4 class="user-page-title mb-4">Đổi mật khẩu</h4>
+
+            @if (ViewBag.ChangePasswordErrors != null)
+            {
+                <div class="alert alert-danger small">
+                    <div asp-validation-summary="All"></div>
+                </div>
+            }
+
+            <form asp-controller="Users" asp-action="ChangePassword" method="post" class="row g-3">
+                @Html.AntiForgeryToken()
+
+                <div class="col-12">
+                    <input type="password"
+                           name="CurrentPassword"
+                           class="form-control bg-light border-0 py-2"
+                           placeholder="Mật khẩu hiện tại" />
+                </div>
+
+                <div class="col-md-6">
+                    <input type="password"
+                           name="NewPassword"
+                           class="form-control bg-light border-0 py-2"
+                           placeholder="Mật khẩu mới" />
+                </div>
+
+                <div class="col-md-6">
+                    <input type="password"
+                           name="ConfirmPassword"
+                           class="form-control bg-light border-0 py-2"
+                           placeholder="Xác nhận mật khẩu mới" />
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                        Cập nhật mật khẩu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function previewSidebarAvatar(input) {
+            const file = input.files && input.files[0];
+            const avatarBox = document.getElementById('sidebarAvatarBox');
+
+            if (!file || !avatarBox) {
+                return;
+            }
+
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+            if (!allowedTypes.includes(file.type)) {
+                alert('Chỉ cho phép ảnh JPG, PNG hoặc WEBP.');
+                input.value = '';
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Dung lượng ảnh không được vượt quá 2MB.');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                avatarBox.innerHTML = `
+                    <img src="${e.target.result}"
+                         id="sidebarAvatarPreview"
+                         class="avatar-preview"
+                         alt="Ảnh đại diện" />
+                `;
+            };
+
+            reader.readAsDataURL(file);
+        }
+    </script>
+}

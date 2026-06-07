@@ -1,0 +1,97 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.Room
+
+@{
+    ViewData["Title"] = "Xóa phòng";
+    Layout = "_LayoutAdmin";
+
+    int bookingCount = ViewBag.BookingCount ?? 0;
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="fw-bold text-danger mb-0">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> Xác nhận xóa phòng
+        </h5>
+    </div>
+
+    <div class="card-body">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-xmark me-1"></i> @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div class="alert alert-warning">
+            Bạn có chắc chắn muốn xóa phòng này không?
+            Dữ liệu tiện nghi phòng và giá phòng theo ngày liên quan cũng sẽ bị xóa.
+        </div>
+
+        @if (bookingCount > 0)
+        {
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-lock me-1"></i>
+                Phòng này đang có <strong>@bookingCount</strong> đơn đặt phòng liên quan, nên không thể xóa.
+            </div>
+        }
+
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">#@Model.Id</dd>
+
+            <dt class="col-sm-3">Nơi lưu trú</dt>
+            <dd class="col-sm-9">@(Model.Accommodation?.Name ?? "Không xác định")</dd>
+
+            <dt class="col-sm-3">Tên loại phòng</dt>
+            <dd class="col-sm-9">@Model.RoomType</dd>
+
+            <dt class="col-sm-3">Giá mỗi đêm</dt>
+            <dd class="col-sm-9 text-danger fw-bold">@Model.PriceNight.ToString("N0")đ</dd>
+
+            <dt class="col-sm-3">Sức chứa</dt>
+            <dd class="col-sm-9">@Model.Capacity người</dd>
+
+            <dt class="col-sm-3">Tổng số phòng</dt>
+            <dd class="col-sm-9">@Model.TotalRooms phòng</dd>
+
+            <dt class="col-sm-3">Loại giường</dt>
+            <dd class="col-sm-9">@(Model.BedType ?? "Chưa cập nhật")</dd>
+
+            <dt class="col-sm-3">Tiện nghi</dt>
+            <dd class="col-sm-9">
+                @if (Model.Amenities != null && Model.Amenities.Any())
+                {
+                    foreach (var amenity in Model.Amenities)
+                    {
+                        <span class="badge bg-light text-dark border me-1 mb-1">@amenity.Name</span>
+                    }
+                }
+                else
+                {
+                    <span class="text-muted">Chưa có</span>
+                }
+            </dd>
+        </dl>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="text-end border-top pt-3">
+            @Html.AntiForgeryToken()
+
+            <a asp-action="Index" class="btn btn-secondary">
+                Quay lại
+            </a>
+
+            @if (bookingCount > 0)
+            {
+                <button type="button" class="btn btn-danger px-4" disabled>
+                    <i class="fa-solid fa-trash me-1"></i> Không thể xóa
+                </button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-danger px-4">
+                    <i class="fa-solid fa-trash me-1"></i> Xóa phòng
+                </button>
+            }
+        </form>
+    </div>
+</div>

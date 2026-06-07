@@ -1,0 +1,943 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.UserSearchResultsVM
+
+@{
+    ViewData["Title"] = "Kết quả tìm kiếm";
+    Layout = "_LayoutUser";
+
+    string today = DateTime.Today.ToString("yyyy-MM-dd");
+
+    bool hasAnyFilter =
+        Model.Search.PropertyTypeId != null ||
+        Model.Search.MinPrice != null ||
+        Model.Search.MaxPrice != null ||
+        Model.Search.StarRating != null ||
+        Model.Search.MinRating != null ||
+        !string.IsNullOrWhiteSpace(Model.Search.BedType) ||
+        Model.Search.MinRoomSize != null ||
+        Model.Search.AccommodationAmenityIds.Any() ||
+        Model.Search.RoomAmenityIds.Any() ||
+        Model.Search.HasPromotion ||
+        Model.Search.OnlyFeatured ||
+        Model.Search.AllowPets;
+}
+
+<section class="user-card p-4 mb-4">
+    <form asp-controller="Users"
+      asp-action="SearchResults"
+      method="get"
+      class="row g-3 align-items-end"
+      id="searchForm"
+      onsubmit="copyFilterToSearchForm()">
+
+    <input type="hidden" name="applyFilters" value="true" />
+    <input type="hidden" name="SortBy" value="@Model.Search.SortBy" />
+        <div class="col-lg-4">
+            <label class="form-label fw-semibold">Khu vực muốn đến</label>
+
+            <div class="position-relative">
+                <input asp-for="Search.Keyword"
+                       name="Keyword"
+                        class="form-control search-date-input"
+                        placeholder="VD: Đà Nẵng, Đà Lạt, Huế..."
+                        autocomplete="off"
+                        id="searchAreaKeywordInput"
+                        required />
+
+                <div id="searchAreaSuggestBox" class="area-suggest-box d-none"></div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <label class="form-label fw-semibold">Ngày lưu trú</label>
+            <partial name="_UserDateRangeBox" model="Model.Search" />
+        </div>
+
+        <div class="col-lg-1">
+            <label class="form-label fw-semibold">Phòng</label>
+            <input asp-for="Search.RoomCount" name="RoomCount" type="number" min="1" max="10" class="form-control" />
+        </div>
+
+        <div class="col-lg-1">
+            <label class="form-label fw-semibold">Người lớn</label>
+            <input asp-for="Search.AdultCount" name="AdultCount" type="number" min="1" max="30" class="form-control" />
+        </div>
+
+        <div class="col-lg-1">
+            <label class="form-label fw-semibold">Trẻ em</label>
+            <input asp-for="Search.ChildCount" name="ChildCount" type="number" min="0" max="20" class="form-control" />
+        </div>
+
+        <input type="hidden" name="ViewMode" value="@Model.Search.ViewMode" />
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
+                <i class="fa-solid fa-magnifying-glass me-1"></i> Tìm lại
+            </button>
+
+            <a asp-controller="Users"
+            asp-action="SearchResults"
+            asp-route-Keyword="@Model.Search.Keyword"
+            asp-route-resetFilters="true"
+            class="btn btn-outline-danger rounded-pill px-4">
+            <i class="fa-solid fa-xmark me-1"></i>
+                Xóa lọc
+            </a>
+        </div>
+    </form>
+    @if (hasAnyFilter)
+{
+    <div class="d-flex align-items-center gap-2 flex-wrap mt-3">
+    <span class="text-muted small fw-semibold">Bộ lọc đang dùng:</span>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Search.Keyword))
+    {
+        <span class="filter-chip">
+            Khu vực: @Model.Search.Keyword
+        </span>
+    }
+
+    @if (Model.Search.PropertyTypeId != null)
+    {
+        var typeName = Model.PropertyTypes
+            .FirstOrDefault(x => x.Id == Model.Search.PropertyTypeId)?.NamePropertyTypes;
+
+        <a class="filter-chip filter-chip-remove"
+           asp-controller="Users"
+           asp-action="SearchResults"
+           asp-route-Keyword="@Model.Search.Keyword"
+           asp-route-removeFilter="PropertyType">
+            Loại: @typeName
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+
+    @if (Model.Search.MinPrice != null || Model.Search.MaxPrice != null)
+    {
+        <a class="filter-chip filter-chip-remove"
+           asp-controller="Users"
+           asp-action="SearchResults"
+           asp-route-Keyword="@Model.Search.Keyword"
+           asp-route-removeFilter="Price">
+            Giá:
+            @(Model.Search.MinPrice?.ToString("N0") ?? "0")
+            -
+            @((Model.Search.MaxPrice ?? 10000000).ToString("N0"))đ
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+
+    @if (Model.Search.StarRating != null)
+    {
+        <a class="filter-chip filter-chip-remove"
+           asp-controller="Users"
+           asp-action="SearchResults"
+           asp-route-Keyword="@Model.Search.Keyword"
+           asp-route-removeFilter="StarRating">
+            @Model.Search.StarRating sao trở lên
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+
+    @if (Model.Search.MinRating != null)
+    {
+        <a class="filter-chip filter-chip-remove"
+           asp-controller="Users"
+           asp-action="SearchResults"
+           asp-route-Keyword="@Model.Search.Keyword"
+           asp-route-removeFilter="MinRating">
+            Điểm từ @Model.Search.MinRating
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Search.BedType))
+    {
+        <a class="filter-chip filter-chip-remove"
+           asp-controller="Users"
+           asp-action="SearchResults"
+           asp-route-Keyword="@Model.Search.Keyword"
+           asp-route-removeFilter="BedType">
+            Giường: @Model.Search.BedType
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+
+    @if (Model.Search.AccommodationAmenityIds.Any())
+    {
+        <a class="filter-chip filter-chip-remove"
+        asp-controller="Users"
+        asp-action="SearchResults"
+        asp-route-Keyword="@Model.Search.Keyword"
+        asp-route-removeFilter="AccommodationAmenities">
+            @Model.Search.AccommodationAmenityIds.Count tiện nghi nơi lưu trú
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+
+    @if (Model.Search.RoomAmenityIds.Any())
+    {
+        <a class="filter-chip filter-chip-remove"
+        asp-controller="Users"
+        asp-action="SearchResults"
+        asp-route-Keyword="@Model.Search.Keyword"
+        asp-route-removeFilter="RoomAmenities">
+            @Model.Search.RoomAmenityIds.Count tiện nghi phòng
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+
+    @if (Model.Search.HasPromotion)
+    {
+        <a class="filter-chip filter-chip-remove"
+           asp-controller="Users"
+           asp-action="SearchResults"
+           asp-route-Keyword="@Model.Search.Keyword"
+           asp-route-removeFilter="HasPromotion">
+            Có ưu đãi
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+
+    @if (Model.Search.OnlyFeatured)
+    {
+        <a class="filter-chip filter-chip-remove"
+           asp-controller="Users"
+           asp-action="SearchResults"
+           asp-route-Keyword="@Model.Search.Keyword"
+           asp-route-removeFilter="OnlyFeatured">
+            Nổi bật
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+
+    @if (Model.Search.AllowPets)
+    {
+        <a class="filter-chip filter-chip-remove"
+           asp-controller="Users"
+           asp-action="SearchResults"
+           asp-route-Keyword="@Model.Search.Keyword"
+           asp-route-removeFilter="AllowPets">
+            Cho phép thú cưng
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    }
+</div>
+}
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <div class="user-card p-4 search-filter-panel">
+            <h5 class="fw-bold mb-3">
+                <i class="fa-solid fa-filter text-primary me-1"></i> Bộ lọc
+            </h5>
+
+            <form asp-controller="Users" asp-action="SearchResults" method="get" id="filterForm" onsubmit="copySearchToFilterForm()">
+                <input type="hidden" name="applyFilters" value="true" />
+                <input type="hidden" name="SortBy" value="@Model.Search.SortBy" />
+                <input type="hidden" name="Keyword" value="@Model.Search.Keyword" />
+                @* <input type="hidden" name="DistrictId" value="@Model.Search.DistrictId" /> *@
+                <input type="hidden" name="CheckInDate" value="@(Model.Search.CheckInDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="CheckOutDate" value="@(Model.Search.CheckOutDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="RoomCount" value="@Model.Search.RoomCount" />
+                <input type="hidden" name="AdultCount" value="@Model.Search.AdultCount" />
+                <input type="hidden" name="ChildCount" value="@Model.Search.ChildCount" />
+                <input type="hidden" name="ViewMode" value="@Model.Search.ViewMode" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Loại nơi lưu trú</label>
+                    <select name="PropertyTypeId" class="form-select">
+                        <option value="">Tất cả loại</option>
+                        @foreach (var type in Model.PropertyTypes)
+                        {
+                            <option value="@type.Id" selected="@(Model.Search.PropertyTypeId == type.Id ? "selected" : null)">
+                                @type.NamePropertyTypes
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Khoảng giá mỗi đêm</label>
+
+                    <div class="dual-range-slider">
+                        <input type="range"
+                                name="MinPrice"
+                                id="minPriceRange"
+                                min="0"
+                                max="10000000"
+                                step="100000"
+                                value="@(Model.Search.MinPrice ?? 0)" />
+
+                        <input type="range"
+                                name="MaxPrice"
+                                id="maxPriceRange"
+                                min="0"
+                                max="10000000"
+                                step="100000"
+                                value="@(Model.Search.MaxPrice ?? 10000000)" />
+                    </div>
+
+                    <div class="d-flex justify-content-between small fw-semibold text-muted mt-2">
+                        <span id="minPriceText">@((Model.Search.MinPrice ?? 0).ToString("N0"))đ</span>
+                        <span id="maxPriceText">@((Model.Search.MaxPrice ?? 10000000).ToString("N0"))đ</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Hạng sao</label>
+                    <select name="StarRating"  class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="5" selected="@(Model.Search.StarRating == 5 ? "selected" : null)">5 sao trở lên</option>
+                        <option value="4" selected="@(Model.Search.StarRating == 4 ? "selected" : null)">4 sao trở lên</option>
+                        <option value="3" selected="@(Model.Search.StarRating == 3 ? "selected" : null)">3 sao trở lên</option>
+                        <option value="2" selected="@(Model.Search.StarRating == 2 ? "selected" : null)">2 sao trở lên</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Điểm đánh giá</label>
+                    <select name="MinRating" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="9" selected="@(Model.Search.MinRating == 9 ? "selected" : null)">Từ 9.0 - Xuất sắc</option>
+                        <option value="8" selected="@(Model.Search.MinRating == 8 ? "selected" : null)">Từ 8.0 - Rất tốt</option>
+                        <option value="7" selected="@(Model.Search.MinRating == 7 ? "selected" : null)">Từ 7.0 - Tốt</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Loại giường</label>
+                    <select  name="BedType" class="form-select">
+                        <option value="">Tất cả</option>
+                        @foreach (var bed in Model.BedTypes)
+                        {
+                            <option value="@bed" selected="@(Model.Search.BedType == bed ? "selected" : null)">
+                                @bed
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Diện tích phòng tối thiểu</label>
+                    <input  name="MinRoomSize" type="number" min="0" step="1" class="form-control" placeholder="VD: 25" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tiện nghi nơi lưu trú</label>
+
+                    <div class="filter-check-list">
+                        @foreach (var amenity in Model.AccommodationAmenities.Take(20))
+                        {
+                            bool isChecked = Model.Search.AccommodationAmenityIds.Contains(amenity.Id);
+
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                    type="checkbox"
+                                    name="AccommodationAmenityIds"
+                                    value="@amenity.Id"
+                                    id="accAmenity_@amenity.Id"
+                                    checked="@(isChecked ? "checked" : null)" />
+
+                                <label class="form-check-label small" for="accAmenity_@amenity.Id">
+                                    @amenity.Name
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tiện nghi phòng</label>
+
+                    <div class="filter-check-list">
+                        @foreach (var amenity in Model.RoomAmenities.Take(20))
+                        {
+                            bool isChecked = Model.Search.RoomAmenityIds.Contains(amenity.Id);
+
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                    type="checkbox"
+                                    name="RoomAmenityIds"
+                                    value="@amenity.Id"
+                                    id="roomAmenity_@amenity.Id"
+                                    checked="@(isChecked ? "checked" : null)" />
+
+                                <label class="form-check-label small" for="roomAmenity_@amenity.Id">
+                                    @amenity.Name
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tùy chọn khác</label>
+
+                    <div class="form-check">
+                        <input  name="OnlyFeatured" id="OnlyFeatured" class="form-check-input" type="checkbox" value="true" checked="@(Model.Search.OnlyFeatured ? "checked" : null)" />
+                        <label class="form-check-label">Chỉ nơi lưu trú nổi bật</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input  name="HasPromotion" class="form-check-input" type="checkbox" value="true" id="HasPromotion" checked="@(Model.Search.HasPromotion ? "checked" : null)"/>
+                        <label class="form-check-label">Đang có ưu đãi</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input  name="AllowPets" class="form-check-input" type="checkbox" value="true" id="AllowPets" checked="@(Model.Search.AllowPets ? "checked" : null)" />
+                        <label class="form-check-label">Cho phép thú cưng</label>
+                    </div>
+                </div>
+
+
+                <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold">
+                    Áp dụng bộ lọc
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <div class="user-card p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <div>
+            <h4 class="user-page-title mb-1">Kết quả tìm kiếm</h4>
+
+            <p class="text-muted mb-0">
+                Tìm thấy <strong>@Model.TotalItems</strong> nơi lưu trú phù hợp.
+                @if (Model.HasDateFilter)
+                {
+                    <span>Đã kiểm tra tình trạng phòng theo ngày nhận/trả phòng.</span>
+                }
+            </p>
+        </div>
+
+        <form asp-controller="Users"
+                asp-action="SearchResults"
+                method="get"
+                class="sort-box">
+
+                <input type="hidden" name="applyFilters" value="true" />
+                <input type="hidden" name="Keyword" value="@Model.Search.Keyword" />
+                <input type="hidden" name="CheckInDate" value="@(Model.Search.CheckInDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="CheckOutDate" value="@(Model.Search.CheckOutDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="RoomCount" value="@Model.Search.RoomCount" />
+                <input type="hidden" name="AdultCount" value="@Model.Search.AdultCount" />
+                <input type="hidden" name="ChildCount" value="@Model.Search.ChildCount" />
+                <input type="hidden" name="PropertyTypeId" value="@Model.Search.PropertyTypeId" />
+                <input type="hidden" name="MinPrice" value="@Model.Search.MinPrice" />
+                <input type="hidden" name="MaxPrice" value="@Model.Search.MaxPrice" />
+                <input type="hidden" name="StarRating" value="@Model.Search.StarRating" />
+                <input type="hidden" name="MinRating" value="@Model.Search.MinRating" />
+                <input type="hidden" name="BedType" value="@Model.Search.BedType" />
+                <input type="hidden" name="MinRoomSize" value="@Model.Search.MinRoomSize" />
+                <input type="hidden" name="OnlyFeatured" value="@Model.Search.OnlyFeatured" />
+                <input type="hidden" name="HasPromotion" value="@Model.Search.HasPromotion" />
+                <input type="hidden" name="AllowPets" value="@Model.Search.AllowPets" />
+                <input type="hidden" name="ViewMode" value="@Model.Search.ViewMode" />
+
+                @foreach (var id in Model.Search.AccommodationAmenityIds)
+                {
+                    <input type="hidden" name="AccommodationAmenityIds" value="@id" />
+                }
+
+                @foreach (var id in Model.Search.RoomAmenityIds)
+                {
+                    <input type="hidden" name="RoomAmenityIds" value="@id" />
+                }
+
+                <span class="sort-label">
+                    <i class="fa-solid fa-arrow-down-wide-short"></i>
+                    Sắp xếp
+                </span>
+
+                <select name="SortBy" class="form-select sort-select" onchange="this.form.submit()">
+                    <option value="recommended" selected="@(Model.Search.SortBy == "recommended" ? "selected" : null)">Đề xuất</option>
+                    <option value="price_asc" selected="@(Model.Search.SortBy == "price_asc" ? "selected" : null)">Giá thấp đến cao</option>
+                    <option value="price_desc" selected="@(Model.Search.SortBy == "price_desc" ? "selected" : null)">Giá cao đến thấp</option>
+                    <option value="rating_desc" selected="@(Model.Search.SortBy == "rating_desc" ? "selected" : null)">Đánh giá cao nhất</option>
+                    <option value="star_desc" selected="@(Model.Search.SortBy == "star_desc" ? "selected" : null)">Hạng sao cao nhất</option>
+                    <option value="name_asc" selected="@(Model.Search.SortBy == "name_asc" ? "selected" : null)">Tên A-Z</option>
+                </select>
+            </form>
+
+        <div class="btn-group">
+            <a class="btn btn-sm @(Model.Search.ViewMode == "list" ? "btn-primary" : "btn-outline-primary")"
+               href="@Url.Action("SearchResults", new {
+                   Keyword = Model.Search.Keyword,
+                   PropertyTypeId = Model.Search.PropertyTypeId,
+                   CheckInDate = Model.Search.CheckInDate?.ToString("yyyy-MM-dd"),
+                   CheckOutDate = Model.Search.CheckOutDate?.ToString("yyyy-MM-dd"),
+                   RoomCount = Model.Search.RoomCount,
+                   AdultCount = Model.Search.AdultCount,
+                   ChildCount = Model.Search.ChildCount,
+                   MinPrice = Model.Search.MinPrice,
+                   MaxPrice = Model.Search.MaxPrice,
+                   StarRating = Model.Search.StarRating,
+                   MinRating = Model.Search.MinRating,
+                   BedType = Model.Search.BedType,
+                   MinRoomSize = Model.Search.MinRoomSize,
+                   OnlyFeatured = Model.Search.OnlyFeatured,
+                   HasPromotion = Model.Search.HasPromotion,
+                   AllowPets = Model.Search.AllowPets,
+                   AccommodationAmenityIds = Model.Search.AccommodationAmenityIds,
+                   RoomAmenityIds = Model.Search.RoomAmenityIds,
+                   SortBy = Model.Search.SortBy,
+                   ViewMode = "list"
+               })">
+                <i class="fa-solid fa-list"></i>
+            </a>
+
+            <a class="btn btn-sm @(Model.Search.ViewMode == "grid" ? "btn-primary" : "btn-outline-primary")"
+               href="@Url.Action("SearchResults", new {
+                   Keyword = Model.Search.Keyword,
+                   PropertyTypeId = Model.Search.PropertyTypeId,
+                   CheckInDate = Model.Search.CheckInDate?.ToString("yyyy-MM-dd"),
+                   CheckOutDate = Model.Search.CheckOutDate?.ToString("yyyy-MM-dd"),
+                   RoomCount = Model.Search.RoomCount,
+                   AdultCount = Model.Search.AdultCount,
+                   ChildCount = Model.Search.ChildCount,
+                   MinPrice = Model.Search.MinPrice,
+                   MaxPrice = Model.Search.MaxPrice,
+                   StarRating = Model.Search.StarRating,
+                   MinRating = Model.Search.MinRating,
+                   BedType = Model.Search.BedType,
+                   MinRoomSize = Model.Search.MinRoomSize,
+                   OnlyFeatured = Model.Search.OnlyFeatured,
+                   HasPromotion = Model.Search.HasPromotion,
+                   AllowPets = Model.Search.AllowPets,
+                   AccommodationAmenityIds = Model.Search.AccommodationAmenityIds,
+                   RoomAmenityIds = Model.Search.RoomAmenityIds,
+                   SortBy = Model.Search.SortBy,
+                   ViewMode = "grid"
+               })">
+                <i class="fa-solid fa-grip"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+        @if (Model.Results.Any())
+        {
+            if (Model.Search.ViewMode == "grid")
+            {
+                <div class="row g-4">
+                    @foreach (var item in Model.Results)
+                    {
+                        <div class="col-md-6 col-xl-4">
+                            <partial name="_UserAccommodationCard" model="item" />
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                foreach (var item in Model.Results)
+                {
+                    <div class="search-result-list-card user-card p-3 mb-3">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="position-relative">
+                                    @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl"
+                                             alt="@item.Name"
+                                             loading="lazy"
+                                             class="rounded-4"
+                                             style="width:100%; height:230px; object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="image-placeholder rounded-4" style="height:230px;">
+                                            <i class="fa-solid fa-hotel fa-3x"></i>
+                                        </div>
+                                    }
+
+                                    <form asp-controller="Users"
+                                          asp-action="ToggleLike"
+                                          asp-route-accommodationId="@item.Id"
+                                          method="post"
+                                          class="m-0">
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                                        <button type="submit" class="like-floating-btn shadow-sm">
+                                            @if (item.IsSaved)
+                                            {
+                                                <i class="fa-solid fa-heart"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-regular fa-heart"></i>
+                                            }
+                                        </button>
+                                    </form>
+
+                                    @if (!string.IsNullOrWhiteSpace(item.PromotionCode))
+                                    {
+                                        <span class="promotion-badge">@item.PromotionCode</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="col-md-8">
+                                <div class="d-flex justify-content-between gap-3 h-100">
+                                    <div class="flex-grow-1">
+                                        <div class="mb-2">
+                                            <span class="badge bg-primary">@item.PropertyTypeName</span>
+
+                                            @if (!string.IsNullOrWhiteSpace(item.DistrictName))
+                                            {
+                                                <span class="badge bg-light text-dark border">@item.DistrictName</span>
+                                            }
+
+                                            @if (item.StarRating != null)
+                                            {
+                                                <span class="badge bg-warning text-dark">
+                                                    @item.StarRating sao
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <h4 class="fw-bold mb-2">@item.Name</h4>
+
+                                        <p class="text-muted mb-2">
+                                            <i class="fa-solid fa-location-dot me-1"></i>
+                                            @item.Address
+                                        </p>
+
+                                        <div class="mb-2">
+                                            @if (item.AverageRating != null)
+                                            {
+                                                <span class="badge bg-primary me-1">
+                                                    <i class="fa-solid fa-star me-1"></i>@item.AverageRating
+                                                </span>
+                                                <span class="small fw-semibold">Đánh giá</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Mới</span>
+                                            }
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(item.PromotionTitle))
+                                        {
+                                            <div class="small text-danger fw-semibold mb-2">
+                                                <i class="fa-solid fa-tags me-1"></i>
+                                                @item.PromotionTitle
+                                            </div>
+                                        }
+
+                                        @if (item.AmenityNames.Any())
+                                        {
+                                            <div class="mb-2">
+                                                @foreach (var amenity in item.AmenityNames.Take(4))
+                                                {
+                                                    <span class="badge bg-light text-dark border me-1 mb-1">
+                                                        @amenity
+                                                    </span>
+                                                }
+                                            </div>
+                                        }
+
+                                        <p class="small text-muted mb-0">
+                                            <i class="fa-solid fa-bed me-1"></i>
+                                            @item.AvailableRoomTypes loại phòng phù hợp với số khách đã chọn.
+                                        </p>
+                                    </div>
+
+                                    <div class="text-end d-flex flex-column justify-content-end" style="min-width: 165px;">
+                                        <small class="text-muted">Giá từ</small>
+
+                                        @if (item.StayNights > 0)
+                                        {
+                                            <small class="text-muted">Tổng giá</small>
+
+                                            <div class="fw-bold text-danger fs-4">
+                                                @item.DisplayPrice.ToString("N0")đ
+                                            </div>
+
+                                            <small class="text-muted d-block mb-3">
+                                                @item.PriceSuffix
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">Giá</small>
+
+                                            <div class="fw-bold text-primary fs-6 mb-3">
+                                                Chọn ngày để xem giá
+                                            </div>
+                                        }
+
+                                        <a asp-controller="Users"
+                                           asp-action="Details"
+                                           asp-route-id="@item.Id"
+                                           asp-route-checkInDate="@(Model.Search.CheckInDate?.ToString("yyyy-MM-dd"))"
+                                           asp-route-checkOutDate="@(Model.Search.CheckOutDate?.ToString("yyyy-MM-dd"))"
+                                           asp-route-roomCount="@Model.Search.RoomCount"
+                                           asp-route-adultCount="@Model.Search.AdultCount"
+                                           asp-route-childCount="@Model.Search.ChildCount"
+                                           class="btn btn-primary rounded-pill fw-bold w-100">
+                                            Xem chi tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                                <a class="page-link"
+                                   href="@Url.Action("SearchResults", new {
+                                        Keyword = Model.Search.Keyword,
+                                        DistrictId = Model.Search.DistrictId,
+                                        PropertyTypeId = Model.Search.PropertyTypeId,
+                                        CheckInDate = Model.Search.CheckInDate?.ToString("yyyy-MM-dd"),
+                                        CheckOutDate = Model.Search.CheckOutDate?.ToString("yyyy-MM-dd"),
+                                        RoomCount = Model.Search.RoomCount,
+                                        AdultCount = Model.Search.AdultCount,
+                                        ChildCount = Model.Search.ChildCount,
+                                        MinPrice = Model.Search.MinPrice,
+                                        MaxPrice = Model.Search.MaxPrice,
+                                        StarRating = Model.Search.StarRating,
+                                        MinRating = Model.Search.MinRating,
+                                        BedType = Model.Search.BedType,
+                                        MinRoomSize = Model.Search.MinRoomSize,
+                                        OnlyFeatured = Model.Search.OnlyFeatured,
+                                        HasPromotion = Model.Search.HasPromotion,
+                                        AllowPets = Model.Search.AllowPets,
+                                        AccommodationAmenityIds = Model.Search.AccommodationAmenityIds,
+                                        RoomAmenityIds = Model.Search.RoomAmenityIds,
+                                        SortBy = Model.Search.SortBy,
+                                        ViewMode = Model.Search.ViewMode,
+                                        Page = i
+                                    })">
+                                    @i
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
+        }
+        else
+        {
+            <div class="empty-state user-card">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <h5 class="fw-bold">Không tìm thấy nơi lưu trú phù hợp</h5>
+                <p class="text-muted">
+                    Hãy thử đổi khu vực, số lượng khách, khoảng giá hoặc tiện nghi.
+                </p>
+
+                <a asp-controller="Users" asp-action="Index" class="btn btn-primary rounded-pill px-4">
+                    Quay lại trang chủ
+                </a>
+            </div>
+        }
+    </div>
+</div>
+@section Scripts {
+    <script>
+        const searchDestinationSuggestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.Districts
+                .Select(d => d.Name)
+                .Union(new[] { "Đà Nẵng", "Đà Lạt", "Huế", "Hội An", "Nha Trang", "Phú Quốc", "Hà Nội", "TP. Hồ Chí Minh", "Sa Pa" })
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList()
+        ));
+
+        const searchAreaInput = document.getElementById('searchAreaKeywordInput');
+        const searchAreaSuggestBox = document.getElementById('searchAreaSuggestBox');
+
+        if (searchAreaInput && searchAreaSuggestBox) {
+            searchAreaInput.addEventListener('input', function () {
+                const keyword = searchAreaInput.value.trim().toLowerCase();
+
+                if (keyword.length === 0) {
+                    searchAreaSuggestBox.classList.add('d-none');
+                    searchAreaSuggestBox.innerHTML = '';
+                    return;
+                }
+
+                const matchedItems = searchDestinationSuggestions
+                    .filter(x => x.toLowerCase().includes(keyword))
+                    .slice(0, 8);
+
+                if (matchedItems.length === 0) {
+                    searchAreaSuggestBox.classList.add('d-none');
+                    searchAreaSuggestBox.innerHTML = '';
+                    return;
+                }
+
+                searchAreaSuggestBox.innerHTML = matchedItems.map(item => `
+                    <button type="button" class="area-suggest-item" data-value="${item}">
+                        <i class="fa-solid fa-location-dot me-2 text-primary"></i>
+                        ${item}
+                    </button>
+                `).join('');
+
+                searchAreaSuggestBox.classList.remove('d-none');
+            });
+
+            searchAreaSuggestBox.addEventListener('click', function (event) {
+                const button = event.target.closest('.area-suggest-item');
+
+                if (!button) {
+                    return;
+                }
+
+                searchAreaInput.value = button.dataset.value;
+                searchAreaSuggestBox.classList.add('d-none');
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!searchAreaSuggestBox.contains(event.target) && event.target !== searchAreaInput) {
+                    searchAreaSuggestBox.classList.add('d-none');
+                }
+            });
+        }
+        const minPriceRange = document.getElementById('minPriceRange');
+    const maxPriceRange = document.getElementById('maxPriceRange');
+    const minPriceText = document.getElementById('minPriceText');
+    const maxPriceText = document.getElementById('maxPriceText');
+
+    function formatMoney(value) {
+        return Number(value).toLocaleString('vi-VN') + 'đ';
+    }
+
+    function syncPriceRange() {
+    if (!minPriceRange || !maxPriceRange) return;
+
+    let minValue = Number(minPriceRange.value);
+    let maxValue = Number(maxPriceRange.value);
+
+    if (minValue > maxValue) {
+        if (document.activeElement === minPriceRange) {
+            maxValue = minValue;
+            maxPriceRange.value = maxValue;
+        } else {
+            minValue = maxValue;
+            minPriceRange.value = minValue;
+        }
+    }
+
+    minPriceText.innerText = formatMoney(minValue);
+    maxPriceText.innerText = formatMoney(maxValue);
+    }
+
+    if (minPriceRange && maxPriceRange) {
+        minPriceRange.addEventListener('input', syncPriceRange);
+        maxPriceRange.addEventListener('input', syncPriceRange);
+        syncPriceRange();
+    }
+    function setHiddenValue(form, name, value) {
+        let input = form.querySelector(`input[type="hidden"][name="${name}"]`);
+
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.classList.add('copied-filter');
+            form.appendChild(input);
+        }
+
+        input.value = value ?? '';
+    }
+
+    function copyFilterToSearchForm() {
+        const searchForm = document.getElementById('searchForm');
+        const filterForm = document.getElementById('filterForm');
+
+        if (!searchForm || !filterForm) {
+            return;
+        }
+
+        searchForm.querySelectorAll('.copied-filter').forEach(x => x.remove());
+
+        const namesToCopy = [
+            'PropertyTypeId',
+            'MinPrice',
+            'MaxPrice',
+            'StarRating',
+            'MinRating',
+            'BedType',
+            'MinRoomSize',
+            'OnlyFeatured',
+            'HasPromotion',
+            'AllowPets',
+            'AmenityIds',
+            'AccommodationAmenityIds',
+            'RoomAmenityIds',
+            'SortBy',
+            'ViewMode'
+        ];
+
+        namesToCopy.forEach(name => {
+            const fields = filterForm.querySelectorAll(`[name="${name}"]`);
+
+            fields.forEach(field => {
+                if ((field.type === 'checkbox' || field.type === 'radio') && !field.checked) {
+                    return;
+                }
+
+                if (!field.value) {
+                    return;
+                }
+
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = name;
+                hidden.value = field.value;
+                hidden.classList.add('copied-filter');
+
+                searchForm.appendChild(hidden);
+            });
+        });
+
+        setHiddenValue(searchForm, 'applyFilters', 'true');
+    }
+
+    function copySearchToFilterForm() {
+        const searchForm = document.getElementById('searchForm');
+        const filterForm = document.getElementById('filterForm');
+
+        if (!searchForm || !filterForm) {
+            return;
+        }
+
+        const namesToCopy = [
+            'Keyword',
+            'CheckInDate',
+            'CheckOutDate',
+            'RoomCount',
+            'AdultCount',
+            'ChildCount',
+            'ViewMode',
+            'SortBy'
+        ];
+
+        namesToCopy.forEach(name => {
+            const field = searchForm.querySelector(`[name="${name}"]`);
+
+            if (field) {
+                setHiddenValue(filterForm, name, field.value);
+            }
+        });
+
+        setHiddenValue(filterForm, 'applyFilters', 'true');
+    }
+
+    </script>
+}

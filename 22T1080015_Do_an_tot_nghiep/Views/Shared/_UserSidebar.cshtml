@@ -1,0 +1,73 @@
+﻿@using Microsoft.AspNetCore.Authentication
+@using System.Security.Claims
+
+@{
+    var authResult = await Context.AuthenticateAsync("UserCookie");
+
+    var userPrincipal = authResult.Succeeded ? authResult.Principal : null;
+
+    string displayName = userPrincipal?.FindFirstValue(ClaimTypes.Name) ?? "Tài khoản";
+    string email = userPrincipal?.FindFirstValue(ClaimTypes.Email) ?? "";
+    string avatarUrl = userPrincipal?.FindFirstValue("AvatarUrl") ?? "";
+
+    string firstLetter = string.IsNullOrWhiteSpace(displayName)
+        ? "U"
+        : displayName.Trim().Substring(0, 1).ToUpper();
+
+    string activeMenu = Convert.ToString(ViewData["ActiveMenu"]) ?? "";
+
+    string Active(string menu)
+    {
+        return activeMenu == menu ? "active" : "";
+    }
+}
+
+<div class="user-card p-4 text-center mb-4">
+    <div id="sidebarAvatarBox" class="mb-3">
+        @if (!string.IsNullOrWhiteSpace(avatarUrl))
+        {
+            <img src="@avatarUrl"
+                 id="sidebarAvatarPreview"
+                 alt="@displayName"
+                 class="avatar-preview" />
+        }
+        else
+        {
+            <div id="sidebarAvatarPreview"
+                 class="avatar-preview bg-primary text-white d-inline-flex align-items-center justify-content-center"
+                 style="font-size:40px;font-weight:700;">
+                @firstLetter
+            </div>
+        }
+    </div>
+</div>
+
+<div class="user-card p-2">
+    <div class="nav flex-column sidebar-nav">
+        <a class="nav-link @Active("Profile")" asp-controller="Users" asp-action="Profile">
+            <i class="fa-regular fa-user"></i> Tài khoản
+        </a>
+
+        <a class="nav-link @Active("Bookings")" asp-controller="Users" asp-action="Bookings">
+            <i class="fa-solid fa-suitcase-rolling"></i> Chuyến đi và nơi ở
+        </a>
+
+        <a class="nav-link @Active("Reviews")" asp-controller="Users" asp-action="Reviews">
+            <i class="fa-regular fa-star"></i> Đánh giá
+        </a>
+
+        <a class="nav-link @Active("Like")" asp-controller="Users" asp-action="Like">
+            <i class="fa-regular fa-heart"></i> Đã lưu
+        </a>
+
+        <hr class="my-2 border-secondary opacity-25" />
+
+        <form asp-controller="Users" asp-action="Logout" method="post" class="m-0">
+            @Html.AntiForgeryToken()
+
+            <button type="submit" class="nav-link text-danger border-0 bg-transparent w-100">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+            </button>
+        </form>
+    </div>
+</div>

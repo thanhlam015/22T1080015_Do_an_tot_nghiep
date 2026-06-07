@@ -1,0 +1,11 @@
+﻿<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-secondary mb-0">
+        <i class="fa-solid fa-gauge text-primary me-2"></i>@ViewData["Title"]
+    </h4>
+
+    <div class="d-flex align-items-center gap-4">
+        @await Component.InvokeAsync("BookingNotification")
+
+        @await Component.InvokeAsync("AdminAccountMenu")
+    </div>
+</div>

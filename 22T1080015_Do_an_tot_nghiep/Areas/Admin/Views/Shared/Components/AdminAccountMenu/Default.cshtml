@@ -1,0 +1,62 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.AdminAccountMenuVM
+
+<div class="dropdown">
+    <div class="d-flex align-items-center gap-2" data-bs-toggle="dropdown" style="cursor: pointer;">
+        @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
+        {
+            <img src="@Model.AvatarUrl"
+                 alt="@Model.FullName"
+                 style="width:35px; height:35px; border-radius:50%; object-fit:cover;" />
+        }
+        else
+        {
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                 style="width: 35px; height: 35px;">
+                @Model.Initials
+            </div>
+        }
+
+        <span class="fw-bold text-secondary">
+            @Model.FullName
+            <i class="fa-solid fa-chevron-down ms-1 fs-7"></i>
+        </span>
+    </div>
+
+    <ul class="dropdown-menu dropdown-menu-end shadow">
+        <li class="dropdown-header">
+            <div class="fw-bold">@Model.FullName</div>
+            <small>@(Model.Role == "Admin" ? "Quản trị viên" : "Nhân viên")</small>
+        </li>
+
+        <li><hr class="dropdown-divider"></li>
+
+        <li>
+            <a class="dropdown-item"
+               asp-area="Admin"
+               asp-controller="Account"
+               asp-action="Profile">
+                <i class="fa-solid fa-user-shield me-2"></i> Thông tin tài khoản
+            </a>
+        </li>
+
+        <li>
+            <a class="dropdown-item"
+               asp-area="Admin"
+               asp-controller="Account"
+               asp-action="ChangePassword">
+                <i class="fa-solid fa-key me-2"></i> Đổi mật khẩu
+            </a>
+        </li>
+
+        <li><hr class="dropdown-divider"></li>
+
+        <li>
+            <form asp-area="Admin" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="dropdown-item text-danger fw-bold">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất
+                </button>
+            </form>
+        </li>
+    </ul>
+</div>

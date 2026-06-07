@@ -1,0 +1,352 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.BookingDetailsVM
+
+@{
+    ViewData["Title"] = "Chi tiết đặt phòng";
+    Layout = "_LayoutAdmin";
+
+    var booking = Model.Booking;
+}
+
+@functions {
+    string GetStatusBadge(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Confirmed" => "bg-primary",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "Pending" => "Chờ xác nhận",
+            "Confirmed" => "Đã xác nhận",
+            "Completed" => "Hoàn tất",
+            "Cancelled" => "Đã hủy",
+            _ => status
+        };
+    }
+
+    string GetPaymentText(string? status)
+    {
+        return status switch
+        {
+            "Paid" => "Đã thanh toán",
+            "Unpaid" => "Chưa thanh toán",
+            "Refunded" => "Đã hoàn tiền",
+            _ => "Chưa cập nhật"
+        };
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-secondary mb-0">
+        <i class="fa-solid fa-calendar-check text-primary me-2"></i>
+        Chi tiết đơn đặt phòng #@booking.Id
+    </h4>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fa-solid fa-circle-xmark me-1"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold text-primary mb-0">
+                    <i class="fa-solid fa-hotel me-2"></i> Thông tin đặt phòng
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Nơi lưu trú</dt>
+                    <dd class="col-sm-8">@booking.Room?.Accommodation?.Name</dd>
+
+                    <dt class="col-sm-4">Loại phòng</dt>
+                    <dd class="col-sm-8">@booking.Room?.RoomType</dd>
+
+                    <dt class="col-sm-4">Ngày nhận phòng</dt>
+                    <dd class="col-sm-8">@booking.CheckInDate.ToString("dd/MM/yyyy")</dd>
+
+                    <dt class="col-sm-4">Ngày trả phòng</dt>
+                    <dd class="col-sm-8">@booking.CheckOutDate.ToString("dd/MM/yyyy")</dd>
+
+                    <dt class="col-sm-4">Số lượng</dt>
+                    <dd class="col-sm-8">
+                        @booking.NumberOfRooms phòng ·
+                        @booking.AdultCount người lớn ·
+                        @booking.ChildCount trẻ em
+                    </dd>
+
+                    <dt class="col-sm-4">Tổng tiền</dt>
+                    <dd class="col-sm-8 text-danger fw-bold">
+                        @booking.TotalPrice.ToString("N0")đ
+                    </dd>
+
+                    <dt class="col-sm-4">Ghi chú</dt>
+                    <dd class="col-sm-8">
+                        @(string.IsNullOrWhiteSpace(booking.Notes) ? "Không có ghi chú" : booking.Notes)
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold text-secondary mb-0">
+                    <i class="fa-solid fa-credit-card me-2"></i> Lịch sử thanh toán
+                </h5>
+            </div>
+
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Mã thanh toán</th>
+                            <th>Phương thức</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Số tiền</th>
+                            <th class="pe-3">Ngày thanh toán</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model.Payments.Any())
+                        {
+                            foreach (var item in Model.Payments)
+                            {
+                                <tr>
+                                    <td class="ps-3 fw-bold">#@item.PaymentId</td>
+                                    <td>@item.PaymentMethod</td>
+                                    <td>@item.PaymentStatus</td>
+                                    <td class="text-end fw-bold">@item.Amount.ToString("N0")đ</td>
+                                    <td class="pe-3">
+                                        @(item.PaymentDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có")
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    Chưa có giao dịch thanh toán.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold text-secondary mb-0">
+                    <i class="fa-solid fa-user me-2"></i> Khách hàng
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <p class="mb-2">
+                    <strong>Họ tên:</strong>
+                    @(booking.FullName ?? booking.User?.FullName)
+                </p>
+
+                <p class="mb-2">
+                    <strong>Email:</strong>
+                    @(booking.Email ?? booking.User?.Email)
+                </p>
+
+                <p class="mb-0">
+                    <strong>SĐT:</strong>
+                    @(booking.PhoneNumber ?? booking.User?.PhoneNumber)
+                </p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold text-secondary mb-0">
+                    <i class="fa-solid fa-circle-info me-2"></i> Trạng thái
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <p>
+                    <strong>Đơn:</strong>
+                    <span class="badge @GetStatusBadge(booking.Status)">
+                        @GetStatusText(booking.Status)
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Thanh toán:</strong>
+                    <span class="badge @(booking.PaymentStatus == "Paid" ? "bg-success" : "bg-secondary")">
+                        @GetPaymentText(booking.PaymentStatus)
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Phương thức:</strong>
+                    @(booking.PaymentMethod ?? "Chưa cập nhật")
+                </p>
+
+                <p>
+                    <strong>Ngày tạo:</strong>
+                    @booking.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                </p>
+
+                @if (booking.ConfirmedAt != null)
+                {
+                    <p>
+                        <strong>Xác nhận lúc:</strong>
+                        @booking.ConfirmedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                    </p>
+                }
+
+                @if (booking.CancelledAt != null)
+                {
+                    <p class="text-danger">
+                        <strong>Hủy lúc:</strong>
+                        @booking.CancelledAt.Value.ToString("dd/MM/yyyy HH:mm")
+                    </p>
+
+                    <p class="text-danger">
+                        <strong>Lý do:</strong>
+                        @booking.CancelReason
+                    </p>
+                }
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold text-primary mb-0">
+                    <i class="fa-solid fa-gears me-2"></i> Thao tác
+                </h5>
+            </div>
+
+            <div class="card-body d-grid gap-2">
+                @if (booking.Status == "Pending")
+                {
+                    <form asp-action="Confirm" asp-route-id="@booking.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa-solid fa-check me-1"></i> Xác nhận đơn
+                        </button>
+                    </form>
+                }
+
+                @if (booking.PaymentStatus != "Paid" && booking.Status != "Cancelled")
+                {
+                    <form asp-action="MarkPaid" asp-route-id="@booking.Id" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="paymentMethod" value="PayAtHotel" />
+
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fa-solid fa-money-bill-wave me-1"></i> Đã thanh toán
+                        </button>
+                    </form>
+                }
+
+                @if (booking.PaymentStatus == "Paid")
+                {
+                    <form asp-action="MarkUnpaid" asp-route-id="@booking.Id" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit" class="btn btn-outline-secondary w-100">
+                            <i class="fa-solid fa-rotate-left me-1"></i> Chuyển về chưa thanh toán
+                        </button>
+                    </form>
+                }
+
+                @if (booking.Status == "Confirmed")
+                {
+                    <form asp-action="Complete" asp-route-id="@booking.Id" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit" class="btn btn-outline-success w-100">
+                            <i class="fa-solid fa-flag-checkered me-1"></i> Hoàn tất đơn
+                        </button>
+                    </form>
+                }
+
+                @if (booking.Status != "Cancelled" && booking.Status != "Completed")
+                {
+                    <button type="button"
+                            class="btn btn-outline-danger w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#cancelBookingModal">
+                        <i class="fa-solid fa-ban me-1"></i> Hủy đơn
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cancelBookingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="Cancel" asp-route-id="@booking.Id" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">
+                        <i class="fa-solid fa-ban me-1"></i> Hủy đơn đặt phòng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p>
+                        Bạn có chắc chắn muốn hủy đơn đặt phòng
+                        <strong>#@booking.Id</strong> không?
+                    </p>
+
+                    <label class="form-label">Lý do hủy</label>
+                    <textarea name="cancelReason"
+                              class="form-control"
+                              rows="3"
+                              placeholder="VD: Khách yêu cầu hủy, hết phòng, thông tin không hợp lệ..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Đóng
+                    </button>
+
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-ban me-1"></i> Xác nhận hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

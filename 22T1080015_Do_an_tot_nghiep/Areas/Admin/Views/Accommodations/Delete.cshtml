@@ -1,0 +1,25 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.Accommodation
+@{
+    ViewData["Title"] = "Xóa nơi lưu trú";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm mt-5">
+            <div class="card-body p-5 text-center">
+                <i class="fa-solid fa-triangle-exclamation text-danger fa-4x mb-4"></i>
+                <h4 class="fw-bold">Xác nhận xóa?</h4>
+                <p class="text-muted">Bạn có chắc chắn muốn xóa nơi lưu trú <strong>@Model.Name</strong>? Hành động này không thể hoàn tác.</p>
+
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="mt-4">
+                        <a asp-action="Index" class="btn btn-light me-2 px-4">Hủy</a>
+                        <button type="submit" class="btn btn-danger px-4">Xóa ngay</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

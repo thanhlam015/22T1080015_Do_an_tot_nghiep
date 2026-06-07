@@ -1,0 +1,334 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.CustomerDetailsVM
+
+@{
+    ViewData["Title"] = "Chi tiết khách hàng";
+    Layout = "_LayoutAdmin";
+
+    string firstLetter = string.IsNullOrWhiteSpace(Model.User.FullName)
+        ? "?"
+        : Model.User.FullName.Trim().Substring(0, 1).ToUpper();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-secondary mb-0">
+        <i class="fa-solid fa-user text-primary me-2"></i> Chi tiết khách hàng
+    </h4>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-4 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                @if (!string.IsNullOrWhiteSpace(Model.User.AvatarUrl))
+                {
+                    <img src="@Model.User.AvatarUrl"
+                         alt="@Model.User.FullName"
+                         class="shadow-sm mb-3"
+                         style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid #dee2e6;" />
+                }
+                else
+                {
+                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                         style="width:90px; height:90px; font-size:32px; font-weight:bold;">
+                        @firstLetter
+                    </div>
+                }
+
+                <h5 class="fw-bold mb-1">@Model.User.FullName</h5>
+
+                @if (Model.User.Role == "Admin")
+                {
+                    <span class="badge bg-danger mb-3">Admin</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary mb-3">Khách hàng</span>
+                }
+                <div class="mb-3">
+                    @if (Model.User.IsLocked)
+                    {
+                        <span class="badge bg-dark">
+                            <i class="fa-solid fa-lock me-1"></i> Đã khóa
+                        </span>
+                    }
+                    else if (Model.User.Status == "Active")
+                    {
+                        <span class="badge bg-success">
+                            <i class="fa-solid fa-circle-check me-1"></i> Đang hoạt động
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">
+                            @Model.User.Status
+                        </span>
+                    }
+                </div>
+
+                <div class="text-start border-top pt-3">
+                    <p class="mb-2">
+                        <i class="fa-regular fa-envelope text-muted me-2"></i>
+                        @Model.User.Email
+                    </p>
+
+                    <p class="mb-0">
+                        <i class="fa-solid fa-phone text-muted me-2"></i>
+                        @Model.User.PhoneNumber
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted">Booking</small>
+                        <h4 class="fw-bold mb-0">@Model.BookingCount</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted">Tổng chi</small>
+                        <h5 class="fw-bold text-success mb-0">
+                            @Model.TotalSpent.ToString("N0")đ
+                        </h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted">Đánh giá</small>
+                        <h4 class="fw-bold text-warning mb-0">@Model.ReviewCount</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted">Đã lưu</small>
+                        <h4 class="fw-bold text-danger mb-0">@Model.SavedAccommodationCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info mb-0">
+            <i class="fa-solid fa-circle-info me-1"></i>
+            Phần này đang đọc dữ liệu từ các bảng Users, Bookings, Reviews và SavedAccommodations.
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="fw-bold text-primary mb-0">
+            <i class="fa-solid fa-calendar-check me-2"></i> Lịch sử đặt phòng
+        </h5>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Mã booking</th>
+                        <th>Nơi lưu trú</th>
+                        <th>Loại phòng</th>
+                        <th>Thời gian ở</th>
+                        <th class="text-end">Tổng tiền</th>
+                        <th>Thanh toán</th>
+                        <th class="pe-3">Trạng thái</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.Bookings.Any())
+                    {
+                        foreach (var item in Model.Bookings)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-bold text-primary">
+                                    #@item.BookingId
+                                </td>
+
+                                <td>@item.AccommodationName</td>
+
+                                <td>@item.RoomType</td>
+
+                                <td>
+                                    @item.CheckInDate.ToString("dd/MM/yyyy")
+                                    -
+                                    @item.CheckOutDate.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td class="text-end fw-bold text-danger">
+                                    @item.TotalPrice.ToString("N0")đ
+                                </td>
+
+                                <td>
+                                    <div>@(item.PaymentMethod ?? "Chưa cập nhật")</div>
+
+                                    @if (item.PaymentStatus == "Paid")
+                                    {
+                                        <small class="text-success">Đã thanh toán</small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">@(item.PaymentStatus ?? "Chưa thanh toán")</small>
+                                    }
+                                </td>
+
+                                <td class="pe-3">
+                                    @if (item.Status == "Confirmed")
+                                    {
+                                        <span class="badge bg-success">Đã xác nhận</span>
+                                    }
+                                    else if (item.Status == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger">Đã hủy</span>
+                                    }
+                                    else if (item.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark">Chờ xử lý</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@item.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                Khách hàng này chưa có đơn đặt phòng.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold text-warning mb-0">
+                    <i class="fa-solid fa-star me-2"></i> Đánh giá đã viết
+                </h5>
+            </div>
+
+            <div class="card-body">
+                @if (Model.Reviews.Any())
+                {
+                    foreach (var review in Model.Reviews)
+                    {
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between">
+                                <strong>@review.AccommodationName</strong>
+
+                                <span class="text-warning">
+                                    @(review.Rating ?? 0) <i class="fa-solid fa-star"></i>
+                                </span>
+                            </div>
+
+                            <small class="text-muted">
+                                @review.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </small>
+
+                            <p class="mb-0 mt-2">
+                                @(string.IsNullOrWhiteSpace(review.Comment) ? "Không có nội dung đánh giá." : review.Comment)
+                            </p>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted fst-italic mb-0">
+                        Khách hàng này chưa viết đánh giá.
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+    <p class="mb-2">
+        <i class="fa-solid fa-calendar-plus text-muted me-2"></i>
+        Ngày tạo: @Model.User.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+    </p>
+
+    <p class="mb-2">
+        <i class="fa-solid fa-right-to-bracket text-muted me-2"></i>
+        Đăng nhập gần nhất:
+        @(Model.User.LastLoginAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có")
+    </p>
+
+    @if (Model.User.IsLocked)
+    {
+        <p class="mb-2 text-danger">
+            <i class="fa-solid fa-lock text-danger me-2"></i>
+            Khóa lúc:
+            @(Model.User.LockedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Không xác định")
+        </p>
+
+        <p class="mb-0 text-danger">
+            <i class="fa-solid fa-circle-info text-danger me-2"></i>
+            Lý do:
+            @(string.IsNullOrWhiteSpace(Model.User.LockReason) ? "Không có lý do" : Model.User.LockReason)
+        </p>
+    }
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold text-danger mb-0">
+                    <i class="fa-solid fa-heart me-2"></i> Nơi lưu trú đã lưu
+                </h5>
+            </div>
+
+            <div class="card-body">
+                @if (Model.SavedAccommodations.Any())
+                {
+                    foreach (var saved in Model.SavedAccommodations)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                            <div>
+                                <strong>@saved.AccommodationName</strong><br />
+
+                                <small class="text-muted">
+                                    Lưu lúc:
+                                    @(saved.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Không xác định")
+                                </small>
+                            </div>
+
+                            <span class="badge bg-light text-dark border">
+                                #@saved.AccommodationId
+                            </span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted fst-italic mb-0">
+                        Khách hàng này chưa lưu nơi lưu trú nào.
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

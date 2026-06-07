@@ -1,0 +1,153 @@
+﻿@model IEnumerable<_22T1080015_Do_an_tot_nghiep.Models.UserBookingItemVM>
+
+@{
+    ViewData["Title"] = "Chuyến đi và nơi ở";
+    ViewData["ActiveMenu"] = "Bookings";
+    Layout = "_LayoutUser";
+}
+
+@functions {
+    string StatusBadge(string status) => status switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "Confirmed" => "bg-primary",
+        "Completed" => "bg-success",
+        "Cancelled" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    string StatusText(string status) => status switch
+    {
+        "Pending" => "Chờ xác nhận",
+        "Confirmed" => "Đã xác nhận",
+        "Completed" => "Hoàn tất",
+        "Cancelled" => "Đã hủy",
+        _ => status
+    };
+
+    string PaymentText(string? status) => status switch
+    {
+        "Paid" => "Đã thanh toán",
+        "Unpaid" => "Chưa thanh toán",
+        "Refunded" => "Đã hoàn tiền",
+        _ => "Chưa cập nhật"
+    };
+}
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <partial name="_UserSidebar" />
+    </div>
+
+    <div class="col-lg-9">
+        <div class="user-card p-4">
+            <h4 class="user-page-title mb-4">Chuyến đi và nơi ở</h4>
+
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    string cancelModalId = $"cancelBookingModal_{item.BookingId}";
+                    string reviewModalId = $"reviewBookingModal_{item.BookingId}";
+
+                    <div class="trip-card rounded-4 p-3 mb-3 bg-white">
+                        <div class="d-flex gap-3">
+                            @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" class="trip-img" alt="@item.AccommodationName" />
+                            }
+                            else
+                            {
+                                <div class="trip-img image-placeholder">
+                                    <i class="fa-solid fa-hotel fa-2x"></i>
+                                </div>
+                            }
+
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="fw-bold mb-1">@item.AccommodationName</h5>
+                                        <p class="text-muted mb-2">
+                                            <i class="fa-solid fa-bed me-1"></i> @item.RoomType
+                                        </p>
+                                    </div>
+
+                                    <span class="badge @StatusBadge(item.Status)">
+                                        @StatusText(item.Status)
+                                    </span>
+                                </div>
+
+                                <div class="row small text-muted mb-2">
+                                    <div class="col-md-6">
+                                        <i class="fa-solid fa-right-to-bracket me-1"></i>
+                                        Nhận phòng: @item.CheckInDate.ToString("dd/MM/yyyy")
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <i class="fa-solid fa-right-from-bracket me-1"></i>
+                                        Trả phòng: @item.CheckOutDate.ToString("dd/MM/yyyy")
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-end mt-3">
+                                    <span class="badge bg-light text-dark border">
+                                        @PaymentText(item.PaymentStatus)
+                                    </span>
+
+                                    <div class="text-end">
+                                        <div class="fw-bold text-danger fs-5">
+                                            @item.TotalPrice.ToString("N0")đ
+                                        </div>
+
+                                        <div class="mt-2">
+                                            @if (item.CanReview)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-warning rounded-pill"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#@reviewModalId">
+                                                    <i class="fa-regular fa-star me-1"></i> Đánh giá
+                                                </button>
+                                            }
+
+                                            @if (item.CanCancel)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger rounded-pill"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#@cancelModalId">
+                                                    <i class="fa-solid fa-ban me-1"></i> Hủy
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (item.CanCancel)
+                    {
+                        <partial name="_CancelBookingModal" model="item" />
+                    }
+
+                    @if (item.CanReview)
+                    {
+                        <partial name="_CreateReviewModal" model="item" />
+                    }
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-suitcase-rolling"></i>
+                    <h5 class="fw-bold">Bạn chưa có chuyến đi nào</h5>
+                    <p class="text-muted">Khi bạn đặt phòng, lịch sử sẽ hiển thị tại đây.</p>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill px-4">
+                        Khám phá nơi lưu trú
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

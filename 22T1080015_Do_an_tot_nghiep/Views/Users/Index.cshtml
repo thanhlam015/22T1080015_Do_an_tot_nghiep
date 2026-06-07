@@ -1,0 +1,403 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.UserIndexVM
+
+@{
+    ViewData["Title"] = "Trang chủ";
+    Layout = "_LayoutUser";
+
+    string today = DateTime.Today.ToString("yyyy-MM-dd");
+
+    var destinationSuggestions = Model.Districts
+        .Select(d => d.Name)
+        .Union(new[] { "Đà Nẵng", "Đà Lạt", "Huế", "Hội An", "Nha Trang", "Phú Quốc", "Hà Nội", "TP. Hồ Chí Minh" })
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+}
+
+<section class="hero-search-section mb-5">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-6">
+            <span class="badge bg-light text-primary mb-3 px-3 py-2">
+                <i class="fa-solid fa-suitcase-rolling me-1"></i>
+                TravelBot Booking
+            </span>
+
+            <h1 class="fw-bold display-6 mb-3">
+                Tìm nơi lưu trú phù hợp cho chuyến đi của bạn
+            </h1>
+
+            <p class="mb-0 opacity-75">
+                Gợi ý khách sạn, homestay, resort theo khu vực, ngày đi và số lượng khách.
+            </p>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="bg-white rounded-4 p-4 shadow-sm">
+                <form asp-controller="Users" asp-action="SearchResults" method="get" class="row g-3" id="homeSearchForm">
+                    <div class="col-12">
+                        <label class="form-label text-dark fw-semibold">Khu vực muốn đến</label>
+
+                        <div class="position-relative">
+                            <input asp-for="Search.Keyword"
+                                   name="Keyword"
+                                   class="form-control"
+                                   placeholder="VD: Đà Nẵng, Đà Lạt, Huế..."
+                                   autocomplete="off"
+                                   id="areaKeywordInput" 
+                                   required />
+
+                            <div id="areaSuggestBox" class="area-suggest-box d-none"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label text-dark fw-semibold">Ngày lưu trú</label>
+                        <partial name="_UserDateRangeBox" model="Model.Search" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-dark fw-semibold">Số phòng</label>
+                        <input asp-for="Search.RoomCount"
+                               name="RoomCount"
+                               type="number"
+                               min="1"
+                               max="10"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-dark fw-semibold">Người lớn</label>
+                        <input asp-for="Search.AdultCount"
+                               name="AdultCount"
+                               type="number"
+                               min="1"
+                               max="30"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-dark fw-semibold">Trẻ em</label>
+                        <input asp-for="Search.ChildCount"
+                               name="ChildCount"
+                               type="number"
+                               min="0"
+                               max="20"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold py-2">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>
+                            Tìm nơi lưu trú
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (Model.RecentlySavedAccommodations.Any())
+{
+    <section class="mb-5">
+        <div class="section-heading">
+            <div>
+                <h4 class="user-page-title mb-1">Đã lưu gần đây</h4>
+                <p class="text-muted mb-0">5 nơi lưu trú bạn vừa đánh dấu yêu thích.</p>
+            </div>
+
+            <a asp-controller="Users" asp-action="Like" class="btn btn-outline-primary rounded-pill">
+                Xem tất cả nơi đã lưu
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var item in Model.RecentlySavedAccommodations)
+            {
+                <div class="col-md-6 col-lg-3">
+                    <partial name="_UserAccommodationCard" model="item" />
+                </div>
+            }
+        </div>
+    </section>
+}
+
+@if (Model.PopularDistricts.Any())
+{
+    <section class="mb-5">
+        <div class="section-heading">
+            <div>
+                <h4 class="user-page-title mb-1">Điểm đến thị thành</h4>
+                <p class="text-muted mb-0">Những khu vực được quan tâm nhiều nhất.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var item in Model.PopularDistricts)
+            {
+                <div class="col-md-6 col-lg">
+                    <a asp-controller="Users"
+                       asp-action="SearchResults"
+                       asp-route-Keyword="@item.DistrictName"
+                       class="text-decoration-none">
+                        <div class="destination-card">
+                            <div class="destination-icon">
+                                <i class="fa-solid fa-city"></i>
+                            </div>
+
+                            <h6 class="fw-bold mb-1">@item.DistrictName</h6>
+
+                            <small class="text-muted">
+                                @item.AccommodationCount nơi lưu trú
+                            </small>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+@if (Model.PromotionAccommodations.Any())
+{
+    <section class="mb-5">
+        <div class="section-heading">
+            <div>
+                <h4 class="user-page-title mb-1">Ưu đãi</h4>
+
+                @if (!string.IsNullOrWhiteSpace(Model.CurrentAreaName))
+                {
+                    <p class="text-muted mb-0">
+                        Ưu đãi phù hợp tại khu vực @Model.CurrentAreaName.
+                    </p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">
+                        Nơi lưu trú đang có khuyến mãi trong hệ thống.
+                    </p>
+                }
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var item in Model.PromotionAccommodations)
+            {
+                <div class="col-md-6 col-lg-3">
+                    <partial name="_UserAccommodationCard" model="item" />
+                </div>
+            }
+        </div>
+    </section>
+}
+
+@if (Model.IdealAccommodations.Any())
+{
+    <section class="mb-5">
+        <div class="section-heading">
+            <div>
+                <h4 class="user-page-title mb-1">Địa điểm nghỉ lý tưởng</h4>
+
+                @if (!string.IsNullOrWhiteSpace(Model.CurrentAreaName))
+                {
+                    <p class="text-muted mb-0">
+                        Gợi ý theo khu vực @Model.CurrentAreaName và đánh giá cao.
+                    </p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">
+                        Một số nơi lưu trú có đánh giá tốt.
+                    </p>
+                }
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var item in Model.IdealAccommodations)
+            {
+                <div class="col-md-6 col-lg-3">
+                    <partial name="_UserAccommodationCard" model="item" />
+                </div>
+            }
+        </div>
+    </section>
+}
+
+@if (Model.PropertyTypeSections.Any())
+{
+    <section class="mb-5">
+        <div class="section-heading">
+            <div>
+                <h4 class="user-page-title mb-1">Tìm theo loại chỗ nghỉ</h4>
+
+                @if (!string.IsNullOrWhiteSpace(Model.CurrentAreaName))
+                {
+                    <p class="text-muted mb-0">
+                        Các loại chỗ nghỉ tại khu vực @Model.CurrentAreaName.
+                    </p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">
+                        Chọn loại nơi lưu trú phù hợp với chuyến đi.
+                    </p>
+                }
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var item in Model.PropertyTypeSections)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <a asp-controller="Users"
+                       asp-action="SearchResults"
+                       asp-route-Keyword="@Model.CurrentAreaName"
+                       asp-route-PropertyTypeId="@item.PropertyTypeId"
+                       class="text-decoration-none">
+                        <div class="property-type-card">
+                            <div>
+                                <h5 class="fw-bold mb-1">@item.PropertyTypeName</h5>
+                                <small class="text-muted">
+                                    @item.AccommodationCount nơi lưu trú
+                                </small>
+                            </div>
+
+                            <div class="text-end">
+                                <small class="text-muted">Từ</small>
+                                <div class="fw-bold text-danger">
+                                    @item.MinPrice.ToString("N0")đ
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<section>
+    <div class="section-heading">
+        <div>
+            <h4 class="user-page-title mb-1">Nơi lưu trú nổi bật</h4>
+            <p class="text-muted mb-0">
+                Gợi ý nhanh dựa trên khu vực tìm kiếm và dữ liệu hiện có.
+            </p>
+        </div>
+    </div>
+
+    @if (Model.Accommodations.Any())
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.Accommodations)
+            {
+                <div class="col-md-6 col-lg-3">
+                    <partial name="_UserAccommodationCard" model="item" />
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state user-card">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <h5 class="fw-bold">Không tìm thấy nơi lưu trú phù hợp</h5>
+            <p class="text-muted">
+                Hãy thử tìm khu vực khác hoặc xóa bộ lọc.
+            </p>
+        </div>
+    }
+</section>
+
+@section Scripts {
+    <script>
+        const checkIn = document.getElementById('checkInDate');
+        const checkOut = document.getElementById('checkOutDate');
+
+        function addOneDay(dateText) {
+            const date = new Date(dateText);
+            date.setDate(date.getDate() + 1);
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        }
+
+        if (checkIn && checkOut) {
+            checkIn.addEventListener('change', function () {
+                if (!checkIn.value) {
+                    return;
+                }
+
+                const minCheckout = addOneDay(checkIn.value);
+                checkOut.min = minCheckout;
+
+                if (!checkOut.value || checkOut.value <= checkIn.value) {
+                    checkOut.value = minCheckout;
+                }
+            });
+        }
+            const destinationSuggestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    Model.Districts
+                            .Select(d => d.Name)
+                            .Union(new[] { "Đà Nẵng", "Đà Lạt", "Huế", "Hội An", "Nha Trang", "Phú Quốc", "Hà Nội", "TP. Hồ Chí Minh" })
+                            .Distinct()
+                            .OrderBy(x => x)
+                            .ToList()
+            ));
+
+    const areaInput = document.getElementById('areaKeywordInput');
+    const areaSuggestBox = document.getElementById('areaSuggestBox');
+
+        if (areaInput && areaSuggestBox) {
+            areaInput.addEventListener('input', function () {
+                const keyword = areaInput.value.trim().toLowerCase();
+
+                if (keyword.length === 0) {
+                    areaSuggestBox.classList.add('d-none');
+                    areaSuggestBox.innerHTML = '';
+                    return;
+                }
+
+                const matchedItems = destinationSuggestions
+                    .filter(x => x.toLowerCase().includes(keyword))
+                    .slice(0, 8);
+
+                if (matchedItems.length === 0) {
+                    areaSuggestBox.classList.add('d-none');
+                    areaSuggestBox.innerHTML = '';
+                    return;
+                }
+
+                areaSuggestBox.innerHTML = matchedItems.map(item => `
+                    <button type="button" class="area-suggest-item" data-value="${item}">
+                        <i class="fa-solid fa-location-dot me-2 text-primary"></i>
+                        ${item}
+                    </button>
+                `).join('');
+
+                areaSuggestBox.classList.remove('d-none');
+            });
+
+            areaSuggestBox.addEventListener('click', function (event) {
+                const button = event.target.closest('.area-suggest-item');
+
+                if (!button) {
+                    return;
+                }
+
+                areaInput.value = button.dataset.value;
+                areaSuggestBox.classList.add('d-none');
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!areaSuggestBox.contains(event.target) && event.target !== areaInput) {
+                    areaSuggestBox.classList.add('d-none');
+                }
+            });
+        }
+    </script>
+}

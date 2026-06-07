@@ -1,0 +1,685 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>@ViewData["Title"] - TravelBot</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+    <link href="~/css/user.css" rel="stylesheet" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+    <partial name="_UserNavbar" />
+
+    <main class="container py-5">
+        <partial name="_UserAlerts" />
+
+        @RenderBody()
+    </main>
+
+    <partial name="_UserFooter" />
+
+    <partial name="_UserChatbotBubble" />
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.date-range-wrapper')) {
+                document.querySelectorAll('.date-range-panel').forEach(x => x.classList.add('d-none'));
+            }
+        });
+                const USER_SEARCH_SESSION_KEY = 'travelbot_user_search_session';
+
+        function getUserSearchSession() {
+            const raw = sessionStorage.getItem(USER_SEARCH_SESSION_KEY);
+
+            if (!raw) {
+                return {};
+            }
+
+            try {
+                return JSON.parse(raw) || {};
+            } catch {
+                return {};
+            }
+        }
+
+        function saveUserSearchSession(data) {
+            const current = getUserSearchSession();
+
+            const next = {
+                ...current,
+                ...data
+            };
+
+            sessionStorage.setItem(USER_SEARCH_SESSION_KEY, JSON.stringify(next));
+        }
+
+        function restoreUserSearchSessionToPage() {
+            const state = getUserSearchSession();
+
+            if (!state) {
+                return;
+            }
+
+            document.querySelectorAll('input[name="CheckInDate"], .booking-checkin-value').forEach(input => {
+                if (!input.value && state.checkInDate) {
+                    input.value = state.checkInDate;
+                }
+            });
+
+            document.querySelectorAll('input[name="CheckOutDate"], .booking-checkout-value').forEach(input => {
+                if (!input.value && state.checkOutDate) {
+                    input.value = state.checkOutDate;
+                }
+            });
+
+            setInputValueIfEmpty('input[name="RoomCount"], input[name="roomCount"]', state.roomCount);
+            setInputValueIfEmpty('input[name="AdultCount"], input[name="adultCount"]', state.adultCount);
+            setInputValueIfEmpty('input[name="ChildCount"], input[name="childCount"]', state.childCount);
+        }
+
+        function setInputValueIfEmpty(selector, value) {
+            if (!value && value !== 0) {
+                return;
+            }
+
+            document.querySelectorAll(selector).forEach(input => {
+                if (!input.value) {
+                    input.value = value;
+                }
+            });
+        }
+
+        function saveUserSearchSessionFromPage() {
+            const checkIn = document.querySelector('input[name="CheckInDate"], .booking-checkin-value')?.value || '';
+            const checkOut = document.querySelector('input[name="CheckOutDate"], .booking-checkout-value')?.value || '';
+            const roomCount = document.querySelector('input[name="RoomCount"], input[name="roomCount"]')?.value || '';
+            const adultCount = document.querySelector('input[name="AdultCount"], input[name="adultCount"]')?.value || '';
+            const childCount = document.querySelector('input[name="ChildCount"], input[name="childCount"]')?.value || '';
+
+            saveUserSearchSession({
+                checkInDate: checkIn,
+                checkOutDate: checkOut,
+                roomCount: roomCount,
+                adultCount: adultCount,
+                childCount: childCount
+            });
+        }
+
+        function appendUserSearchSessionToUrl(url) {
+            const state = getUserSearchSession();
+
+            if (!state) {
+                return url;
+            }
+
+            if (state.checkInDate && !url.searchParams.has('checkInDate')) {
+                url.searchParams.set('checkInDate', state.checkInDate);
+            }
+
+            if (state.checkOutDate && !url.searchParams.has('checkOutDate')) {
+                url.searchParams.set('checkOutDate', state.checkOutDate);
+            }
+
+            if (state.roomCount && !url.searchParams.has('roomCount')) {
+                url.searchParams.set('roomCount', state.roomCount);
+            }
+
+            if (state.adultCount && !url.searchParams.has('adultCount')) {
+                url.searchParams.set('adultCount', state.adultCount);
+            }
+
+            if (state.childCount && !url.searchParams.has('childCount')) {
+                url.searchParams.set('childCount', state.childCount);
+            }
+
+            return url;
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+                    restoreUserSearchSessionToPage();
+
+                    document.querySelectorAll('.booking-calendar-wrapper').forEach(initBookingCalendar);
+
+                    document.querySelectorAll(
+                        'input[name="RoomCount"], input[name="roomCount"], input[name="AdultCount"], input[name="adultCount"], input[name="ChildCount"], input[name="childCount"]'
+                    ).forEach(input => {
+                        input.addEventListener('change', saveUserSearchSessionFromPage);
+                        input.addEventListener('input', saveUserSearchSessionFromPage);
+
+                    });
+                    document.addEventListener('click', function (event) {
+                        const link = event.target.closest('a[href]');
+
+                        if (!link) {
+                            return;
+                        }
+
+                        const url = new URL(link.href, window.location.origin);
+                        const path = url.pathname.toLowerCase();
+
+                        const shouldAppendSearchState =
+                            path.includes('/users/details') ||
+                            path.includes('/users/searchresults') ||
+                            path.includes('/users/checkout');
+
+                        if (!shouldAppendSearchState) {
+                            return;
+                        }
+
+                        saveUserSearchSessionFromPage();
+
+                        const newUrl = appendUserSearchSessionToUrl(url);
+
+                        link.href = newUrl.toString();
+                    });
+        });
+
+        function initBookingCalendar(wrapper) {
+            const toggle = wrapper.querySelector('.booking-calendar-toggle');
+            const panel = wrapper.querySelector('.booking-calendar-panel');
+            const text = wrapper.querySelector('.booking-calendar-text');
+
+            const checkInInput = wrapper.querySelector('.booking-checkin-value');
+            const checkOutInput = wrapper.querySelector('.booking-checkout-value');
+
+            const prevBtn = wrapper.querySelector('.calendar-prev');
+            const nextBtn = wrapper.querySelector('.calendar-next');
+
+            const leftTitle = wrapper.querySelector('.left-month-title');
+            const rightTitle = wrapper.querySelector('.right-month-title');
+            const leftDays = wrapper.querySelector('.left-month-days');
+            const rightDays = wrapper.querySelector('.right-month-days');
+
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            let selectedCheckIn = parseDateValue(checkInInput.value);
+            let selectedCheckOut = parseDateValue(checkOutInput.value);
+
+            if (selectedCheckIn) {
+                currentMonth = new Date(selectedCheckIn.getFullYear(), selectedCheckIn.getMonth(), 1);
+            }
+
+            toggle.addEventListener('click', function (event) {
+                event.stopPropagation();
+
+                document.querySelectorAll('.booking-calendar-panel').forEach(function (item) {
+                    if (item !== panel) {
+                        item.classList.add('d-none');
+                    }
+                });
+
+                panel.classList.toggle('d-none');
+                renderCalendar();
+                positionBookingCalendar(wrapper);
+            });
+
+                prevBtn.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    currentMonth.setMonth(currentMonth.getMonth() - 1);
+                    renderCalendar();
+                    positionBookingCalendar(wrapper);
+                });
+
+                nextBtn.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    currentMonth.setMonth(currentMonth.getMonth() + 1);
+                    renderCalendar();
+                    positionBookingCalendar(wrapper);
+                });
+
+            panel.addEventListener('click', function (event) {
+                event.stopPropagation();
+            });
+
+            document.addEventListener('click', function () {
+                panel.classList.add('d-none');
+            });
+
+            renderCalendar();
+
+            function renderCalendar() {
+                const leftMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+                const rightMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+
+                leftTitle.innerText = getMonthTitle(leftMonthDate);
+                rightTitle.innerText = getMonthTitle(rightMonthDate);
+
+                renderMonth(leftDays, leftMonthDate);
+                renderMonth(rightDays, rightMonthDate);
+
+                updateCalendarText();
+            }
+
+            function renderMonth(container, monthDate) {
+                container.innerHTML = '';
+
+                const year = monthDate.getFullYear();
+                const month = monthDate.getMonth();
+
+                const firstDay = new Date(year, month, 1);
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                let startDay = firstDay.getDay();
+                startDay = startDay === 0 ? 7 : startDay;
+
+                for (let i = 1; i < startDay; i++) {
+                    const empty = document.createElement('span');
+                    empty.className = 'calendar-day empty';
+                    container.appendChild(empty);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    date.setHours(0, 0, 0, 0);
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'calendar-day';
+                    btn.innerText = day;
+
+                    if (date < today) {
+                        btn.disabled = true;
+                        btn.classList.add('disabled');
+                    }
+
+                    if (isSameDate(date, selectedCheckIn)) {
+                        btn.classList.add('selected', 'start');
+                    }
+
+                    if (isSameDate(date, selectedCheckOut)) {
+                        btn.classList.add('selected', 'end');
+                    }
+
+                    if (isBetween(date, selectedCheckIn, selectedCheckOut)) {
+                        btn.classList.add('in-range');
+                    }
+
+                    btn.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                        selectDate(date);
+                    });
+
+                    container.appendChild(btn);
+                }
+            }
+
+            function selectDate(date) {
+                if (!selectedCheckIn || selectedCheckOut) {
+                    selectedCheckIn = date;
+                    selectedCheckOut = null;
+
+                    checkInInput.value = formatDateValue(selectedCheckIn);
+                    checkOutInput.value = '';
+                    saveUserSearchSessionFromPage();
+
+                    renderCalendar();
+                    return;
+                }
+
+                if (date <= selectedCheckIn) {
+                    selectedCheckIn = date;
+                    selectedCheckOut = null;
+
+                    checkInInput.value = formatDateValue(selectedCheckIn);
+                    checkOutInput.value = '';
+                    saveUserSearchSessionFromPage();
+
+                    renderCalendar();
+                    return;
+                }
+
+                selectedCheckOut = date;
+
+                checkInInput.value = formatDateValue(selectedCheckIn);
+                checkOutInput.value = formatDateValue(selectedCheckOut);
+                saveUserSearchSessionFromPage();
+
+                renderCalendar();
+
+                panel.classList.add('d-none');
+            }
+
+            function updateCalendarText() {
+                if (selectedCheckIn && selectedCheckOut) {
+                    text.innerText = formatDateVN(selectedCheckIn) + ' — ' + formatDateVN(selectedCheckOut);
+                } else if (selectedCheckIn) {
+                    text.innerText = formatDateVN(selectedCheckIn) + ' — Chọn ngày trả';
+                } else {
+                    text.innerText = 'Chọn ngày nhận - trả phòng';
+                }
+            }
+        }
+        
+        function positionBookingCalendar(wrapper) {
+            const toggle = wrapper.querySelector('.booking-calendar-toggle');
+            const panel = wrapper.querySelector('.booking-calendar-panel');
+
+            if (!toggle || !panel) {
+                return;
+            }
+
+            const rect = toggle.getBoundingClientRect();
+
+            let top = rect.bottom + 10;
+
+            const maxTop = window.innerHeight - Math.min(panel.scrollHeight, window.innerHeight - 140) - 20;
+
+            if (top > maxTop) {
+                top = Math.max(80, maxTop);
+            }
+
+            panel.style.setProperty('--calendar-top', top + 'px');
+        }
+        function parseDateValue(value) {
+            if (!value) {
+                return null;
+            }
+
+            const parts = value.split('-');
+
+            if (parts.length !== 3) {
+                return null;
+            }
+
+            return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        }
+
+        function formatDateValue(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+
+            return `${y}-${m}-${d}`;
+        }
+
+        function formatDateVN(date) {
+            const d = String(date.getDate()).padStart(2, '0');
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const y = date.getFullYear();
+
+            return `${d}/${m}/${y}`;
+        }
+
+        function getMonthTitle(date) {
+            return `tháng ${date.getMonth() + 1} ${date.getFullYear()}`;
+        }
+
+        function isSameDate(a, b) {
+            return a && b &&
+                a.getFullYear() === b.getFullYear() &&
+                a.getMonth() === b.getMonth() &&
+                a.getDate() === b.getDate();
+        }
+
+        function isBetween(date, start, end) {
+            return start && end && date > start && date < end;
+        }
+            document.addEventListener('DOMContentLoaded', function () {
+            const toggle = document.getElementById('userChatbotToggle');
+            const box = document.getElementById('userChatbotBox');
+            const close = document.getElementById('userChatbotClose');
+            const form = document.getElementById('userChatbotForm');
+            const input = document.getElementById('userChatbotInput');
+            const body = document.getElementById('userChatbotBody');
+            const CHAT_SESSION_KEY = 'travelbot_user_chat_session';
+
+            if (!toggle || !box) {
+                return;
+            }
+            loadChatSession();
+
+            toggle.addEventListener('click', function () {
+                box.classList.toggle('d-none');
+            });
+
+            if (close) {
+                close.addEventListener('click', function () {
+                    box.classList.add('d-none');
+                });
+            }
+
+            if (input) {
+                input.addEventListener('input', function () {
+                input.style.height = 'auto';
+                input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+            });
+
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    form.requestSubmit();
+                }
+            });
+        }
+
+        if (form) {
+            form.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                const question = input.value.trim();
+
+                if (!question) {
+                    return;
+                }
+
+                appendUserMessage(question, true);
+
+                input.value = '';
+                input.style.height = 'auto';
+
+                const loadingId = appendBotMessage('TravelBot đang tìm dữ liệu phù hợp...', [], false);
+
+                try {
+                    const response = await fetch('/Users/AskChatbot', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            question: question
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    updateBotMessage(
+                        loadingId,
+                        data.answer || 'Bot chưa có câu trả lời phù hợp.',
+                        data.cards || []
+                    );
+                } catch (error) {
+                    updateBotMessage(
+                        loadingId,
+                        'Bot đang gặp lỗi kết nối. Vui lòng thử lại sau.',
+                        []
+                    );
+                }
+            });
+        }
+
+        function appendUserMessage(text, shouldSave = true) {
+            const html = `
+                <div class="chat-message user">
+                    <div class="chat-bubble">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+
+            body.insertAdjacentHTML('beforeend', html);
+            body.scrollTop = body.scrollHeight;
+
+            if (shouldSave) {
+                saveChatMessage('user', text, []);
+            }
+        }
+
+        function appendBotMessage(text, cards = [], shouldSave = true) {
+            const id = 'bot_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+
+            let contentHtml = escapeHtml(text).replace(/\n/g, '<br>');
+
+            if (cards && cards.length > 0) {
+                contentHtml += renderAccommodationCards(cards);
+            }
+
+            const html = `
+                <div class="chat-message bot" id="${id}">
+                    <div class="chat-avatar">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+
+                    <div class="chat-bubble">${contentHtml}</div>
+                </div>
+            `;
+
+            body.insertAdjacentHTML('beforeend', html);
+            body.scrollTop = body.scrollHeight;
+
+            if (shouldSave) {
+                saveChatMessage('bot', text, cards || []);
+            }
+
+            return id;
+        }
+
+        function updateBotMessage(id, text, cards = []) {
+            const message = document.getElementById(id);
+
+            if (!message) {
+                appendBotMessage(text, cards, true);
+                return;
+            }
+
+            const bubble = message.querySelector('.chat-bubble');
+
+            if (bubble) {
+                let html = escapeHtml(text).replace(/\n/g, '<br>');
+
+                if (cards && cards.length > 0) {
+                    html += renderAccommodationCards(cards);
+                }
+
+                bubble.innerHTML = html;
+            }
+
+            body.scrollTop = body.scrollHeight;
+
+            saveChatMessage('bot', text, cards || []);
+        }
+                function getChatMessagesFromSession() {
+            const raw = sessionStorage.getItem(CHAT_SESSION_KEY);
+
+            if (!raw) {
+                return [];
+            }
+
+            try {
+                return JSON.parse(raw) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveChatMessage(role, text, cards) {
+            const messages = getChatMessagesFromSession();
+
+            messages.push({
+                role: role,
+                text: text,
+                cards: cards || [],
+                createdAt: new Date().toISOString()
+            });
+
+            // Giữ tối đa 30 tin để tránh sessionStorage quá lớn
+            const limitedMessages = messages.slice(-30);
+
+            sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(limitedMessages));
+        }
+
+        function loadChatSession() {
+            const messages = getChatMessagesFromSession();
+
+            if (!messages || messages.length === 0) {
+                return;
+            }
+
+            body.innerHTML = '';
+
+            messages.forEach(message => {
+                if (message.role === 'user') {
+                    appendUserMessage(message.text, false);
+                } else {
+                    appendBotMessage(message.text, message.cards || [], false);
+                }
+            });
+
+            body.scrollTop = body.scrollHeight;
+        }
+
+            function renderAccommodationCards(cards) {
+                let html = '<div class="chat-accommodation-list">';
+
+                cards.forEach(card => {
+                    const imageHtml = card.imageUrl
+                        ? `<img src="${escapeHtml(card.imageUrl)}" alt="${escapeHtml(card.name)}">`
+                        : `<div class="chat-card-placeholder"><i class="fa-solid fa-hotel"></i></div>`;
+
+                    const ratingHtml = card.averageRating
+                        ? `<span><i class="fa-solid fa-star"></i> ${card.averageRating}</span>`
+                        : `<span>Mới</span>`;
+
+                    html += `
+                        <a class="chat-accommodation-card" href="${escapeHtml(card.detailUrl)}">
+                            <div class="chat-card-image">
+                                ${imageHtml}
+                            </div>
+
+                            <div class="chat-card-content">
+                                <div class="chat-card-title">${escapeHtml(card.name)}</div>
+
+                                <div class="chat-card-meta">
+                                    <span>${escapeHtml(card.districtName || '')}</span>
+                                    ${ratingHtml}
+                                </div>
+
+                                <div class="chat-card-price">
+                                    ${formatChatMoney(card.minPrice)}đ/đêm
+                                </div>
+
+                                <div class="chat-card-link">
+                                    Xem chi tiết
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                });
+
+                html += '</div>';
+
+                return html;
+            }
+
+            function formatChatMoney(value) {
+                return Number(value || 0).toLocaleString('vi-VN');
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.innerText = text;
+                return div.innerHTML;
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

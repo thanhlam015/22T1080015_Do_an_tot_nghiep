@@ -1,0 +1,53 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.UserBookingItemVM
+
+@{
+    string modalId = $"reviewBookingModal_{Model.BookingId}";
+}
+
+<div class="modal fade" id="@modalId" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <form asp-controller="Users" asp-action="CreateReview" method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="AccommodationId" value="@Model.AccommodationId" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title text-warning fw-bold">
+                        <i class="fa-regular fa-star me-1"></i> Đánh giá nơi lưu trú
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="fw-semibold">@Model.AccommodationName</p>
+
+                    <label class="form-label">Số sao</label>
+                    <select name="Rating" class="form-select mb-3">
+                        <option value="5">5 sao - Rất tốt</option>
+                        <option value="4">4 sao - Tốt</option>
+                        <option value="3">3 sao - Bình thường</option>
+                        <option value="2">2 sao - Chưa tốt</option>
+                        <option value="1">1 sao - Không hài lòng</option>
+                    </select>
+
+                    <label class="form-label">Nội dung đánh giá</label>
+                    <textarea name="Comment"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">
+                        Đóng
+                    </button>
+
+                    <button type="submit" class="btn btn-warning rounded-pill text-white fw-bold">
+                        Gửi đánh giá
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

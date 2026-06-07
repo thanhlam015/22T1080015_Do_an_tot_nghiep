@@ -1,0 +1,84 @@
+﻿@model IEnumerable<_22T1080015_Do_an_tot_nghiep.Models.UserReviewItemVM>
+
+@{
+    ViewData["Title"] = "Đánh giá của tôi";
+    ViewData["ActiveMenu"] = "Reviews";
+    Layout = "_LayoutUser";
+}
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <partial name="_UserSidebar" />
+    </div>
+
+    <div class="col-lg-9">
+        <div class="user-card p-4">
+            <h4 class="user-page-title mb-4">Đánh giá của tôi</h4>
+
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <div class="card border-0 bg-light rounded-4 p-4 mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="fw-bold text-primary mb-1">@item.AccommodationName</h6>
+
+                                <div class="text-warning small mb-2">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= (item.Rating ?? 0))
+                                        {
+                                            <i class="fa-solid fa-star"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-regular fa-star"></i>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <small class="text-muted d-block">
+                                    @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+
+                                <form asp-controller="Users"
+                                      asp-action="DeleteReview"
+                                      asp-route-id="@item.ReviewId"
+                                      method="post"
+                                      class="mt-2"
+                                      onsubmit="return confirm('Bạn có chắc muốn xóa đánh giá này?')">
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">
+                                        <i class="fa-solid fa-trash me-1"></i> Xóa
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <p class="fst-italic mb-0">
+                            "@(string.IsNullOrWhiteSpace(item.Comment) ? "Không có nội dung đánh giá." : item.Comment)"
+                        </p>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-regular fa-star"></i>
+                    <h5 class="fw-bold">Bạn chưa có đánh giá nào</h5>
+                    <p class="text-muted">
+                        Sau khi hoàn tất chuyến đi, bạn có thể đánh giá nơi lưu trú trong mục Chuyến đi và nơi ở.
+                    </p>
+
+                    <a asp-controller="Users" asp-action="Bookings" class="btn btn-primary rounded-pill px-4">
+                        Xem chuyến đi
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

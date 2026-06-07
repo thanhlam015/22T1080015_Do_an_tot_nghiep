@@ -1,0 +1,44 @@
+﻿<div class="user-chatbot-widget">
+    <button type="button" class="user-chatbot-toggle" id="userChatbotToggle">
+        <i class="fa-solid fa-robot"></i>
+    </button>
+
+    <div class="user-chatbot-box d-none" id="userChatbotBox">
+        <div class="user-chatbot-header">
+            <div>
+                <h5>TravelBot AI</h5>
+                <span>Tư vấn nơi lưu trú du lịch</span>
+            </div>
+
+            <button type="button" id="userChatbotClose">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="user-chatbot-body" id="userChatbotBody">
+            <div class="chat-message bot">
+                <div class="chat-avatar">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+
+                <div class="chat-bubble">
+                    Xin chào, tôi là TravelBot AI. Tôi có thể hỗ trợ bạn tìm nơi lưu trú phù hợp, xem thông tin phòng, giá, tiện nghi, khuyến mãi và gợi ý du lịch trong hệ thống.
+                </div>
+            </div>
+        </div>
+
+        <form class="user-chatbot-form" id="userChatbotForm">
+            <textarea id="userChatbotInput"
+                      rows="1"
+                      placeholder="Nhập câu hỏi của bạn..."></textarea>
+
+            <button type="submit">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+
+        <div class="user-chatbot-note">
+            TravelBot chỉ hỗ trợ các câu hỏi liên quan đến nơi lưu trú, phòng, giá, tiện nghi, khuyến mãi và du lịch trong hệ thống.
+        </div>
+    </div>
+</div>

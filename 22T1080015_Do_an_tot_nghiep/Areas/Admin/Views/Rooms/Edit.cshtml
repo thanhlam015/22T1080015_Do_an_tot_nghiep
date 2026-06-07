@@ -1,0 +1,38 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.RoomVM
+
+@{
+    ViewData["Title"] = "Cập nhật phòng";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold text-primary mb-0">
+            <i class="fa-solid fa-pen-to-square me-2"></i> Cập nhật phòng
+        </h5>
+
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+
+    <div class="card-body">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <partial name="_RoomForm" model="Model" />
+
+            <div class="text-end border-top pt-3">
+                <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Cập nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,95 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.Promotion
+
+@{
+    ViewData["Title"] = "Xóa khuyến mãi";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="fw-bold text-danger mb-0">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> Xác nhận xóa khuyến mãi
+        </h5>
+    </div>
+
+    <div class="card-body">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-xmark me-1"></i> @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div class="alert alert-warning">
+            Bạn có chắc chắn muốn xóa khuyến mãi này không?
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">Mã khuyến mãi</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-dark">@Model.Code</span>
+            </dd>
+
+            <dt class="col-sm-3">Tên khuyến mãi</dt>
+            <dd class="col-sm-9">@Model.Title</dd>
+
+            <dt class="col-sm-3">Loại giảm</dt>
+            <dd class="col-sm-9">
+                @(Model.DiscountType == "Percent" ? "Giảm theo phần trăm" : "Giảm số tiền cố định")
+            </dd>
+
+            <dt class="col-sm-3">Giá trị giảm</dt>
+            <dd class="col-sm-9 text-danger fw-bold">
+                @(Model.DiscountType == "Percent" ? $"{Model.DiscountValue:N0}%" : $"{Model.DiscountValue:N0}đ")
+            </dd>
+
+            <dt class="col-sm-3">Thời gian</dt>
+            <dd class="col-sm-9">
+                @Model.StartDate.ToString("dd/MM/yyyy HH:mm")
+                -
+                @Model.EndDate.ToString("dd/MM/yyyy HH:mm")
+            </dd>
+
+            <dt class="col-sm-3">Lượt đã dùng</dt>
+            <dd class="col-sm-9">@Model.UsedCount</dd>
+
+            <dt class="col-sm-3">Phạm vi áp dụng</dt>
+            <dd class="col-sm-9">
+                @if (Model.PromotionAccommodations != null && Model.PromotionAccommodations.Any())
+                {
+                    foreach (var item in Model.PromotionAccommodations)
+                    {
+                        <span class="badge bg-light text-dark border me-1 mb-1">
+                            @item.Accommodation?.Name
+                        </span>
+                    }
+                }
+                else
+                {
+                    <span class="badge bg-primary">Tất cả nơi lưu trú</span>
+                }
+            </dd>
+        </dl>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="text-end border-top pt-3">
+            @Html.AntiForgeryToken()
+
+            <a asp-action="Index" class="btn btn-secondary">
+                Quay lại
+            </a>
+
+            @if (Model.UsedCount > 0)
+            {
+                <button type="button" class="btn btn-danger px-4" disabled>
+                    <i class="fa-solid fa-lock me-1"></i> Không thể xóa
+                </button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-danger px-4">
+                    <i class="fa-solid fa-trash me-1"></i> Xóa khuyến mãi
+                </button>
+            }
+        </form>
+    </div>
+</div>

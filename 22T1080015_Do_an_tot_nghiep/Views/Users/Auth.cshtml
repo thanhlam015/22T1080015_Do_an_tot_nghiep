@@ -1,0 +1,153 @@
+﻿@{
+    ViewData["Title"] = "Đăng nhập / Đăng ký";
+    Layout = "_LayoutAuth";
+
+    string activeTab = Convert.ToString(ViewBag.ActiveTab) ?? "login";
+    bool isRegisterTab = activeTab == "register";
+}
+
+<div class="auth-card">
+    <div class="text-center mb-4">
+        <h3 class="fw-bold text-primary">
+            <i class="fa-solid fa-earth-asia me-2"></i>TravelBot
+        </h3>
+        <p class="text-muted small mb-0">Khám phá điểm đến tuyệt vời</p>
+    </div>
+
+    <partial name="_UserAlerts" />
+
+    <ul class="nav nav-pills mb-4 bg-light p-1 rounded-pill">
+        <li class="nav-item w-50">
+            <button class="nav-link w-100 @(isRegisterTab ? "" : "active")"
+                    data-bs-toggle="pill"
+                    data-bs-target="#loginTab"
+                    type="button">
+                Đăng nhập
+            </button>
+        </li>
+
+        <li class="nav-item w-50">
+            <button class="nav-link w-100 @(isRegisterTab ? "active" : "")"
+                    data-bs-toggle="pill"
+                    data-bs-target="#registerTab"
+                    type="button">
+                Đăng ký
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade @(isRegisterTab ? "" : "show active")" id="loginTab">
+            <form asp-controller="Users" asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
+                @if (!ViewData.ModelState.IsValid && !isRegisterTab)
+                {
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Email</label>
+                    <input type="email"
+                           name="Email"
+                           class="form-control rounded-3 py-2 bg-light border-0"
+                           placeholder="Nhập email..."
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Mật khẩu</label>
+                    <input type="password"
+                           name="Password"
+                           class="form-control rounded-3 py-2 bg-light border-0"
+                           placeholder="••••••••"
+                           required />
+                </div>
+
+                <div class="form-check mb-3">
+                    <input type="checkbox"
+                           name="RememberMe"
+                           value="true"
+                           class="form-check-input"
+                           id="rememberMe" />
+
+                    <label class="form-check-label small" for="rememberMe">
+                        Ghi nhớ đăng nhập
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold py-2 shadow-sm">
+                    Đăng nhập
+                </button>
+            </form>
+        </div>
+
+        <div class="tab-pane fade @(isRegisterTab ? "show active" : "")" id="registerTab">
+            <form asp-controller="Users" asp-action="Register" method="post">
+                @Html.AntiForgeryToken()
+
+                @if (!ViewData.ModelState.IsValid && isRegisterTab)
+                {
+                    <div asp-validation-summary="All" class="alert alert-danger small"></div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Họ và tên</label>
+                    <input type="text"
+                           name="FullName"
+                           class="form-control rounded-3 py-2 bg-light border-0"
+                           placeholder="VD: Nguyễn Văn A"
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Email</label>
+                    <input type="email"
+                           name="Email"
+                           class="form-control rounded-3 py-2 bg-light border-0"
+                           placeholder="VD: user@gmail.com"
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Số điện thoại</label>
+                    <input type="tel"
+                           name="PhoneNumber"
+                           class="form-control rounded-3 py-2 bg-light border-0"
+                           placeholder="VD: 0901234567"
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Mật khẩu</label>
+                    <input type="password"
+                           name="Password"
+                           class="form-control rounded-3 py-2 bg-light border-0"
+                           placeholder="Tạo mật khẩu"
+                           required />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small">Xác nhận mật khẩu</label>
+                    <input type="password"
+                           name="ConfirmPassword"
+                           class="form-control rounded-3 py-2 bg-light border-0"
+                           placeholder="Nhập lại mật khẩu"
+                           required />
+                </div>
+
+                <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold py-2 shadow-sm">
+                    Tạo tài khoản
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a asp-controller="Home" asp-action="Index" class="small text-decoration-none">
+            <i class="fa-solid fa-arrow-left me-1"></i> Về trang chủ
+        </a>
+    </div>
+</div>

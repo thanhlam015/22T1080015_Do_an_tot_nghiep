@@ -1,0 +1,192 @@
+﻿@model IEnumerable<_22T1080015_Do_an_tot_nghiep.Models.Accommodation>
+@{
+    ViewData["Title"] = "Quản lý Nơi lưu trú";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-secondary mb-0">
+        <i class="fa-solid fa-hotel text-primary me-2"></i> Danh sách Nơi lưu trú
+    </h4>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fa-solid fa-plus me-1"></i> Thêm nơi lưu trú mới
+    </a>
+</div>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <input type="text"
+                       name="keyword"
+                       value="@ViewBag.Keyword"
+                       class="form-control"
+                       placeholder="Tìm tên, địa chỉ, mô tả..." />
+            </div>
+
+            <div class="col-md-2">
+                <select name="districtId" class="form-select" asp-items="ViewBag.Districts">
+                    <option value="">Tất cả khu vực</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <select name="propertyTypeId" class="form-select" asp-items="ViewBag.PropertyTypes">
+                    <option value="">Tất cả loại</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <select name="aiStatus" class="form-select">
+                    <option value="">Trạng thái AI</option>
+                    <option value="NotIndexed" selected="@(ViewBag.AiStatus == "NotIndexed" ? "selected" : null)">Chưa index</option>
+                    <option value="Indexed" selected="@(ViewBag.AiStatus == "Indexed" ? "selected" : null)">Đã index</option>
+                    <option value="Error" selected="@(ViewBag.AiStatus == "Error" ? "selected" : null)">Lỗi</option>
+                    <option value="Indexing" selected="@(ViewBag.AiStatus == "Indexing" ? "selected" : null)">Đang index</option>
+                </select>
+            </div>
+
+            <div class="col-md-1">
+                <select name="starRating" class="form-select">
+                    <option value="">Sao</option>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <option value="@i" selected="@(ViewBag.StarRating == i ? "selected" : null)">
+                            @i
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary flex-grow-1">
+                    <i class="fa-solid fa-filter me-1"></i> Lọc
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary" title="Xóa lọc">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm table-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">Hình ảnh</th>
+                        <th>Tên chỗ nghỉ</th>
+                        <th>Địa chỉ</th>
+                        <th>Khu vực</th>
+                        <th>Loại</th>
+                        <th class="text-center">AI</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @{
+                                    // Lấy ảnh được đánh dấu là ảnh chính (IsPrimary == true), nếu không có thì lấy ảnh đầu tiên
+                                    var primaryImage = item.AccommodationImages?.FirstOrDefault(i => i.IsPrimary == true)
+                                    ?? item.AccommodationImages?.FirstOrDefault();
+                                }
+
+                                @if (primaryImage != null && !string.IsNullOrEmpty(primaryImage.ImageUrl))
+                                {
+                                    <img src="@primaryImage.ImageUrl" class="rounded" style="width: 60px; height: 60px; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                        <i class="fa-solid fa-image text-muted"></i>
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">@item.Name</div>
+                                <small class="text-muted">ID: #@item.Id</small>
+                            </td>
+                            <td class="small" style="max-width: 250px;">@item.Address</td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    @(item.District?.Name ?? "Không rõ")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">@(item.PropertyType?.NamePropertyTypes ?? "Chưa phân loại")</span>
+                            </td>
+                            <td>
+                                @if (item.AiIndexStatus == "Indexed")
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-circle-check me-1"></i> Đã index
+                                    </span>
+                                }
+                                else if (item.AiIndexStatus == "Error")
+                                {
+                                    <span class="badge bg-danger">
+                                        <i class="fa-solid fa-triangle-exclamation me-1"></i> Lỗi
+                                    </span>
+                                }
+                                else if (item.AiIndexStatus == "Indexing")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fa-solid fa-spinner me-1"></i> Đang index
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        Chưa index
+                                    </span>
+                                }
+
+                                @if (item.AiLastIndexedAt != null)
+                                {
+                                    <br />
+                                    <small class="text-muted">
+                                        @item.AiLastIndexedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                }
+                            </td>
+                            <td class="text-end px-3">
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary" title="Sửa">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light text-info" title="Chi tiết">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-light text-danger" title="Xóa">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                    <form asp-area="Admin"
+                                          asp-controller="VectorDb"
+                                          asp-action="SyncAccommodation"
+                                          asp-route-id="@item.Id"
+                                          method="post"
+                                          class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                                        <button type="submit"
+                                                class="btn btn-sm btn-light text-success"
+                                                title="Đồng bộ AI">
+                                            <i class="fa-solid fa-robot"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <partial name="_AdminPagination" />
+        </div>
+    </div>
+</div>

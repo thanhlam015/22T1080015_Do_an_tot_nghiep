@@ -1,0 +1,103 @@
+﻿@model IEnumerable<_22T1080015_Do_an_tot_nghiep.Models.UserSavedAccommodationItemVM>
+
+@{
+    ViewData["Title"] = "Khách sạn đã lưu";
+    ViewData["ActiveMenu"] = "Like";
+    Layout = "_LayoutUser";
+}
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <partial name="_UserSidebar" />
+    </div>
+
+    <div class="col-lg-9">
+        <div class="user-card p-4">
+            <h4 class="user-page-title mb-4">Khách sạn đã lưu</h4>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="row g-4">
+                    @foreach (var item in Model)
+                    {
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden position-relative">
+                                <form asp-controller="Users"
+                                      asp-action="ToggleLike"
+                                      asp-route-accommodationId="@item.AccommodationId"
+                                      method="post"
+                                      class="m-0">
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="returnUrl"
+                                           value="@Context.Request.Path@Context.Request.QueryString" />
+
+                                    <button type="submit"
+                                            class="saved-heart-btn shadow-sm"
+                                            title="Bỏ lưu">
+                                        <i class="fa-solid fa-heart fs-5"></i>
+                                    </button>
+                                </form>
+
+                                @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" class="saved-img" alt="@item.Name" />
+                                }
+                                else
+                                {
+                                    <div class="saved-img image-placeholder">
+                                        <i class="fa-solid fa-hotel fa-3x"></i>
+                                    </div>
+                                }
+
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-1 text-truncate">@item.Name</h6>
+
+                                    <small class="text-muted d-block mb-2">
+                                        <i class="fa-solid fa-location-dot me-1"></i>@item.Address
+                                    </small>
+
+                                    <div class="mb-2">
+                                        @if (item.AverageRating != null)
+                                        {
+                                            <span class="badge bg-primary me-2 p-2">@item.AverageRating</span>
+                                            <span class="fw-bold small">Đánh giá</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary me-2 p-2">N/A</span>
+                                            <span class="text-muted small">Chưa có đánh giá</span>
+                                        }
+                                    </div>
+                                    <a asp-controller="Users"
+                                       asp-action="Details"
+                                       asp-route-id="@item.AccommodationId"
+                                       class="text-decoration-none text-dark">
+                                        <h5 class="fw-bold mb-2">Xem chi tiết</h5>
+                                    </a>
+
+                                    <small class="text-muted">
+                                        Đã lưu:
+                                        @(item.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Không xác định")
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-regular fa-heart"></i>
+                    <h5 class="fw-bold">Bạn chưa lưu nơi lưu trú nào</h5>
+                    <p class="text-muted">Nhấn biểu tượng trái tim để lưu lại nơi lưu trú yêu thích.</p>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill px-4">
+                        Khám phá ngay
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

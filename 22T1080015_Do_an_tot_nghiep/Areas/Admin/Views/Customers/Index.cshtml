@@ -1,0 +1,330 @@
+﻿@model IEnumerable<_22T1080015_Do_an_tot_nghiep.Models.CustomerListItemVM>
+
+@{
+    ViewData["Title"] = "Khách hàng";
+    Layout = "_LayoutAdmin";
+
+    string selectedRole = Convert.ToString(ViewBag.Role);
+    string selectedStatus = Convert.ToString(ViewBag.Status);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-secondary mb-0">
+        <i class="fa-solid fa-users text-primary me-2"></i> Khách hàng
+    </h4>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fa-solid fa-circle-xmark me-1"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+
+                    <input type="text"
+                           name="keyword"
+                           value="@ViewBag.Keyword"
+                           class="form-control"
+                           placeholder="Tìm tên, email, số điện thoại..." />
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <select name="role" class="form-select">
+                    <option value="">Tất cả vai trò</option>
+                    <option value="Customer" selected="@(selectedRole == "Customer" ? "selected" : null)">Khách hàng</option>
+                    <option value="Admin" selected="@(selectedRole == "Admin" ? "selected" : null)">Quản trị viên</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Active" selected="@(selectedStatus == "Active" ? "selected" : null)">Đang hoạt động</option>
+                    <option value="Inactive" selected="@(selectedStatus == "Inactive" ? "selected" : null)">Ngưng hoạt động</option>
+                    <option value="Locked" selected="@(selectedStatus == "Locked" ? "selected" : null)">Đã khóa</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary">
+                    <i class="fa-solid fa-filter me-1"></i> Lọc
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-rotate-left me-1"></i> Xóa lọc
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary">
+                    <tr>
+                        <th class="ps-3" style="width: 70px;">ID</th>
+                        <th>Người dùng</th>
+                        <th>Liên hệ</th>
+                        <th>Vai trò</th>
+                        <th>Trạng thái</th>
+                        <th>Lịch sử</th>
+                        <th class="text-end pe-3">Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            string modalId = "lockModal_" + item.UserId;
+
+                            <tr>
+                                <td class="ps-3 fw-bold">
+                                    #@item.UserId
+                                </td>
+
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (!string.IsNullOrWhiteSpace(item.AvatarUrl))
+                                        {
+                                            <img src="@item.AvatarUrl"
+                                                 alt="@item.FullName"
+                                                 class="me-3 shadow-sm"
+                                                 style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid #dee2e6;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                 style="width:45px; height:45px; font-weight:bold;">
+                                                @item.FirstLetter
+                                            </div>
+                                        }
+
+                                        <div>
+                                            <div class="fw-bold">@item.FullName</div>
+
+                                            <small class="text-muted">
+                                                Tạo: @item.CreatedAt.ToString("dd/MM/yyyy")
+                                            </small>
+
+                                            @if (item.LastLoginAt != null)
+                                            {
+                                                <br />
+                                                <small class="text-muted">
+                                                    Đăng nhập gần nhất: @item.LastLoginAt.Value.ToString("dd/MM/yyyy HH:mm")
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div>
+                                        <i class="fa-regular fa-envelope text-muted me-1"></i>
+                                        @item.Email
+                                    </div>
+
+                                    <div>
+                                        <i class="fa-solid fa-phone text-muted me-1"></i>
+                                        @item.PhoneNumber
+                                    </div>
+
+                                    @if (item.EmailConfirmed)
+                                    {
+                                        <small class="text-success">
+                                            <i class="fa-solid fa-circle-check me-1"></i>Đã xác thực email
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">
+                                            <i class="fa-regular fa-circle me-1"></i>Chưa xác thực email
+                                        </small>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.Role == "Admin")
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="fa-solid fa-user-shield me-1"></i> Admin
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fa-solid fa-user me-1"></i> Khách hàng
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.IsLocked)
+                                    {
+                                        <span class="badge bg-dark">
+                                            <i class="fa-solid fa-lock me-1"></i> Đã khóa
+                                        </span>
+
+                                        @if (!string.IsNullOrWhiteSpace(item.LockReason))
+                                        {
+                                            <br />
+                                            <small class="text-muted">
+                                                @item.LockReason
+                                            </small>
+                                        }
+                                    }
+                                    else if (item.Status == "Active")
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fa-solid fa-circle-check me-1"></i> Hoạt động
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fa-solid fa-circle-pause me-1"></i> @item.Status
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <strong>@item.BookingCount booking</strong><br />
+
+                                    <small class="text-success">
+                                        Tổng chi: @item.TotalSpent.ToString("N0")đ
+                                    </small>
+
+                                    <small class="d-block text-muted">
+                                        @item.ReviewCount đánh giá · @item.SavedAccommodationCount đã lưu
+                                    </small>
+                                </td>
+
+                                <td class="text-end pe-3">
+                                    <div class="btn-group">
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.UserId"
+                                           class="btn btn-sm btn-outline-info"
+                                           title="Xem chi tiết">
+                                            <i class="fa-solid fa-clock-rotate-left"></i>
+                                        </a>
+
+                                        @if (item.Role != "Admin")
+                                        {
+                                            if (item.IsLocked)
+                                            {
+                                                <form asp-action="ToggleLock"
+                                                      asp-route-id="@item.UserId"
+                                                      method="post"
+                                                      class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-success"
+                                                            onclick="return confirm('Mở khóa tài khoản này?')"
+                                                            title="Mở khóa">
+                                                        <i class="fa-solid fa-unlock"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#@modalId"
+                                                        title="Khóa tài khoản">
+                                                    <i class="fa-solid fa-lock"></i>
+                                                </button>
+                                            }
+                                        }
+                                    </div>
+
+                                    @if (item.Role != "Admin" && !item.IsLocked)
+                                    {
+                                        <div class="modal fade" id="@modalId" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content text-start">
+                                                    <form asp-action="ToggleLock"
+                                                          asp-route-id="@item.UserId"
+                                                          method="post">
+                                                        @Html.AntiForgeryToken()
+
+                                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title text-danger">
+                                                                <i class="fa-solid fa-lock me-1"></i> Khóa tài khoản
+                                                            </h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+
+                                                        <div class="modal-body">
+                                                            <p>
+                                                                Bạn đang khóa tài khoản:
+                                                                <strong>@item.FullName</strong>
+                                                            </p>
+
+                                                            <label class="form-label">Lý do khóa</label>
+                                                            <textarea name="lockReason"
+                                                                      class="form-control"
+                                                                      rows="3"
+                                                                      placeholder="VD: Tài khoản có hành vi spam hoặc vi phạm chính sách..."></textarea>
+                                                        </div>
+
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                Hủy
+                                                            </button>
+
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="fa-solid fa-lock me-1"></i> Khóa tài khoản
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="fa-solid fa-circle-info me-1"></i>
+                                Không tìm thấy người dùng phù hợp.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <partial name="_AdminPagination" />
+    </div>
+</div>

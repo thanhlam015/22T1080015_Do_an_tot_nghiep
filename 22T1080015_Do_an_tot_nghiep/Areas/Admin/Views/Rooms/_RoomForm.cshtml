@@ -1,0 +1,148 @@
+﻿@model _22T1080015_Do_an_tot_nghiep.Models.RoomVM
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="row">
+    <div class="col-md-7 mb-3">
+        <label asp-for="AccommodationId" class="form-label fw-bold"></label>
+        <input type="hidden" asp-for="AccommodationId" id="AccommodationId" />
+
+        <input type="text"
+               id="AccommodationSearch"
+               class="form-control"
+               list="AccommodationSuggestList"
+               value="@ViewBag.SelectedAccommodationName"
+               placeholder="Nhập tên nơi lưu trú để tìm..." />
+
+        <datalist id="AccommodationSuggestList">
+            @if (Model.Accommodations != null)
+            {
+                foreach (var item in Model.Accommodations)
+                {
+                    <option value="@item.Text" data-id="@item.Value"></option>
+                }
+            }
+        </datalist>
+
+        <span asp-validation-for="AccommodationId" class="text-danger small"></span>
+        <small class="text-muted">
+            Nhập tên nơi lưu trú rồi chọn đúng gợi ý trong danh sách.
+        </small>
+        <span asp-validation-for="AccommodationId" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-5 mb-3">
+        <label asp-for="RoomType" class="form-label fw-bold"></label>
+        <input asp-for="RoomType" class="form-control" placeholder="VD: Deluxe King Ocean View" />
+        <span asp-validation-for="RoomType" class="text-danger small"></span>
+    </div>
+</div>
+
+<div class="border-start border-4 border-primary ps-2 mb-3">
+    <h6 class="fw-bold text-secondary mb-0">Giá & Sức chứa</h6>
+</div>
+
+<div class="row bg-light rounded p-3 mb-4">
+    <div class="col-md-3 mb-3">
+        <label asp-for="PriceNight" class="form-label"></label>
+        <input asp-for="PriceNight" type="number" min="0" step="1000" class="form-control" />
+        <span asp-validation-for="PriceNight" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="Capacity" class="form-label"></label>
+        <input asp-for="Capacity" type="number" min="1" class="form-control" />
+        <span asp-validation-for="Capacity" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="TotalRooms" class="form-label"></label>
+        <input asp-for="TotalRooms" type="number" min="1" class="form-control" />
+        <span asp-validation-for="TotalRooms" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label asp-for="RoomSize" class="form-label">Diện tích m²</label>
+        <input asp-for="RoomSize" type="number" min="0" step="0.1" class="form-control" placeholder="VD: 32.5" />
+        <span asp-validation-for="RoomSize" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-12">
+        <label asp-for="BedType" class="form-label"></label>
+        <input asp-for="BedType" class="form-control" placeholder="VD: 1 giường đôi lớn, 2 giường đơn..." />
+        <span asp-validation-for="BedType" class="text-danger small"></span>
+    </div>
+</div>
+
+<div class="border-start border-4 border-primary ps-2 mb-3">
+    <h6 class="fw-bold text-secondary mb-0">Tiện nghi riêng tại phòng</h6>
+</div>
+
+<div class="row mb-4">
+    @if (Model.AvailableAmenities != null && Model.AvailableAmenities.Any())
+    {
+        foreach (var amenity in Model.AvailableAmenities)
+        {
+            <div class="col-md-4 mb-2">
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="amenity_@amenity.Id"
+                           name="SelectedAmenityIds"
+                           value="@amenity.Id"
+                           checked="@(Model.SelectedAmenityIds != null && Model.SelectedAmenityIds.Contains(amenity.Id) ? "checked" : null)" />
+
+                    <label class="form-check-label" for="amenity_@amenity.Id">
+                        @if (!string.IsNullOrWhiteSpace(amenity.Icon))
+                        {
+                            <i class="fa-solid @amenity.Icon me-1"></i>
+                        }
+                        @amenity.Name
+                    </label>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <span class="text-muted fst-italic">
+                Chưa có tiện nghi phòng. Bạn có thể thêm dữ liệu trong bảng Amenities với Category = "Room".
+            </span>
+        </div>
+    }
+</div>
+
+<div class="mb-4">
+    <label asp-for="Description" class="form-label fw-bold"></label>
+    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả chi tiết phòng..."></textarea>
+    <span asp-validation-for="Description" class="text-danger small"></span>
+</div>
+<script>
+    (function () {
+        const searchInput = document.getElementById('AccommodationSearch');
+        const hiddenInput = document.getElementById('AccommodationId');
+        const datalist = document.getElementById('AccommodationSuggestList');
+
+        if (!searchInput || !hiddenInput || !datalist) {
+            return;
+        }
+
+        function syncAccommodationId() {
+            const value = searchInput.value.trim();
+            const options = Array.from(datalist.options);
+
+            const matched = options.find(x => x.value === value);
+
+            if (matched) {
+                hiddenInput.value = matched.dataset.id;
+            } else {
+                hiddenInput.value = 0;
+            }
+        }
+
+        searchInput.addEventListener('input', syncAccommodationId);
+        searchInput.addEventListener('change', syncAccommodationId);
+        syncAccommodationId();
+    })();
+</script>

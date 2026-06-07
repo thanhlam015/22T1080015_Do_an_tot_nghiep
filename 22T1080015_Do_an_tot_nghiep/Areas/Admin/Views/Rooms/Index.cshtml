@@ -1,0 +1,193 @@
+﻿@model IEnumerable<_22T1080015_Do_an_tot_nghiep.Models.Room>
+
+@{
+    ViewData["Title"] = "Quản lý Phòng";
+    Layout = "_LayoutAdmin";
+
+    string selectedPriceRange = Convert.ToString(ViewBag.PriceRange);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-secondary mb-0">
+        <i class="fa-solid fa-bed text-primary me-2"></i> Quản lý Phòng
+    </h4>
+
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fa-solid fa-plus me-1"></i> Thêm phòng mới
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <select name="accommodationId" class="form-select" asp-items="ViewBag.Accommodations">
+                    <option value="">-- Chọn nơi lưu trú --</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <input type="text"
+                       name="keyword"
+                       value="@ViewBag.Keyword"
+                       class="form-control"
+                       placeholder="Tìm tên phòng / nơi lưu trú..." />
+            </div>
+
+            <div class="col-md-2">
+                <select name="priceRange" class="form-select">
+                    <option value="">Mức giá / đêm</option>
+                    <option value="0-1000000" selected="@(selectedPriceRange == "0-1000000" ? "selected" : null)">Dưới 1,000,000đ</option>
+                    <option value="1000000-3000000" selected="@(selectedPriceRange == "1000000-3000000" ? "selected" : null)">1tr - 3tr</option>
+                    <option value="3000000-5000000" selected="@(selectedPriceRange == "3000000-5000000" ? "selected" : null)">3tr - 5tr</option>
+                    <option value="5000000" selected="@(selectedPriceRange == "5000000" ? "selected" : null)">Trên 5tr</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <select name="amenityId" class="form-select" asp-items="ViewBag.Amenities">
+                    <option value="">Tiện nghi phòng</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary flex-grow-1">
+                    <i class="fa-solid fa-filter me-1"></i> Lọc
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary" title="Xóa lọc">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm table-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary">
+                    <tr>
+                        <th class="ps-3" style="width: 70px;">ID</th>
+                        <th>Nơi lưu trú</th>
+                        <th>Tên loại phòng</th>
+                        <th class="text-center">Sức chứa</th>
+                        <th class="text-end">Giá / Đêm</th>
+                        <th class="text-center">Số lượng</th>
+                        <th>Tiện nghi</th>
+                        <th class="text-end pe-3">Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-3">
+                                    <span class="fw-bold">#@item.Id</span>
+                                </td>
+
+                                <td>
+                                    <div class="fw-bold text-dark">
+                                        @(item.Accommodation?.Name ?? "Không xác định")
+                                    </div>
+                                    <small class="text-muted">
+                                        Accommodation ID: @item.AccommodationId
+                                    </small>
+                                </td>
+
+                                <td>
+                                    <div class="fw-bold">@item.RoomType</div>
+
+                                    @if (!string.IsNullOrWhiteSpace(item.BedType))
+                                    {
+                                        <small class="text-muted">
+                                            <i class="fa-solid fa-bed me-1"></i>@item.BedType
+                                        </small>
+                                    }
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="fa-solid fa-user me-1"></i>@item.Capacity người
+                                    </span>
+                                </td>
+
+                                <td class="text-end text-danger fw-bold">
+                                    @item.PriceNight.ToString("N0")đ
+                                </td>
+
+                                <td class="text-center">
+                                    @item.TotalRooms phòng
+                                </td>
+
+                                <td style="max-width: 260px;">
+                                    @if (item.Amenities != null && item.Amenities.Any())
+                                    {
+                                        foreach (var amenity in item.Amenities.Take(3))
+                                        {
+                                            <span class="badge bg-light text-dark border me-1 mb-1">
+                                                @amenity.Name
+                                            </span>
+                                        }
+
+                                        if (item.Amenities.Count > 3)
+                                        {
+                                            <span class="badge bg-secondary">
+                                                +@(item.Amenities.Count - 3)
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">Chưa có</span>
+                                    }
+                                </td>
+
+                                <td class="text-end pe-3">
+                                    <div class="btn-group">
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-light text-primary"
+                                           title="Sửa">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+
+                                        <a asp-action="Delete"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-light text-danger"
+                                           title="Xóa">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="fa-solid fa-circle-info me-1"></i>
+                                Chưa có phòng nào hoặc không tìm thấy dữ liệu phù hợp.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <partial name="_AdminPagination" />
+    </div>
+</div>

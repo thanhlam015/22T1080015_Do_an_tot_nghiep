@@ -1,0 +1,86 @@
+﻿@{
+    int currentPage = Convert.ToInt32(ViewBag.CurrentPage ?? 1);
+    int totalPages = Convert.ToInt32(ViewBag.TotalPages ?? 1);
+
+    var routeValues = ViewData["PaginationRouteValues"] as Dictionary<string, object?>
+        ?? new Dictionary<string, object?>();
+
+    string actionName = ViewData["PaginationAction"]?.ToString() ?? "Index";
+
+    List<int> pages = new List<int>();
+
+    if (totalPages <= 10)
+    {
+        for (int i = 1; i <= totalPages; i++)
+        {
+            pages.Add(i);
+        }
+    }
+    else
+    {
+        for (int i = 1; i <= 10; i++)
+        {
+            pages.Add(i);
+        }
+
+        if (currentPage > 10 && currentPage < totalPages)
+        {
+            pages.Add(currentPage);
+        }
+
+        pages.Add(totalPages);
+
+        pages = pages.Distinct().OrderBy(x => x).ToList();
+    }
+
+    string GetPageUrl(int pageNumber)
+    {
+        var values = new Dictionary<string, object?>(routeValues)
+        {
+            ["page"] = pageNumber
+        };
+
+        return Url.Action(actionName, values) ?? "#";
+    }
+}
+
+@if (totalPages > 1)
+{
+    <nav aria-label="Admin pagination" class="mt-4 pb-3">
+        <ul class="pagination justify-content-center mb-0 flex-wrap gap-1">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link" href="@GetPageUrl(currentPage - 1)">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+            </li>
+
+            @{
+                int? previousPage = null;
+            }
+
+            @foreach (var pageNumber in pages)
+            {
+                if (previousPage.HasValue && pageNumber > previousPage.Value + 1)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+
+                <li class="page-item @(currentPage == pageNumber ? "active" : "")">
+                    <a class="page-link" href="@GetPageUrl(pageNumber)">
+                        @pageNumber
+                    </a>
+                </li>
+
+                previousPage = pageNumber;
+            }
+
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <a class="page-link" href="@GetPageUrl(currentPage + 1)">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+}
